@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Traveler</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div id="universe"></div>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <h1>Audio Traveler</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="favoritos.html" class="btn-nav">Favoritos</a>
+                <a href="historial.html" class="btn-nav">Historial</a>
+                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
+                <div class="unirse-jam">
+                    <input type="text" id="inputCodigoJam" placeholder="Código de Jam..." maxlength="6">
+                    <button class="btn-unirse" id="btnUnirse">Unirse</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="barra-busqueda">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar ciudad, país o estación">
+        </div>
+
+        <section class="globo-seccion">
+            <!-- Globo 3D irá aquí -->
+            <div class="globo-placeholder grande"></div>
+        </section>
+
+        <div class="iconos-lateral">
+            <button class="icono-btn">
+                <i class="fas fa-lock"></i>
+            </button>
+            <button class="icono-btn">
+                <i class="fas fa-share-nodes"></i>
+            </button>
+            <button class="icono-btn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+            <button class="icono-btn">
+                <i class="fas fa-dice"></i>
+            </button>
+        </div>
+
+        <section class="reproductor">
+            <div class="reproductor-info">
+                <h3 class="estacion-nombre">Super 98.1 FM Cuernavaca</h3>
+                <p class="estacion-lugar">Cuernavaca, México</p>
+            </div>
+            <div class="reproductor-acciones">
+                <button class="icono-btn"><i class="fas fa-heart"></i></button>
+                <a href="jam.html">
+                    <button class="icono-btn"><i class="fas fa-user-group"></i></button>
+                </a>
+            </div>
+            <div class="reproductor-controles">
+                <button class="control-btn"><i class="fas fa-backward-step"></i></button>
+                <button class="control-btn"><i class="fas fa-stop"></i></button>
+                <button class="control-btn"><i class="fas fa-forward-step"></i></button>
+            </div>
+            <div class="reproductor-volumen">
+                <i class="fas fa-volume-high"></i>
+                <input type="range" min="0" max="100" value="70">
+            </div>
+        </section>
+
+        <div class="panel-historial" id="panelHistorial">
+            <div class="panel-header">
+                <h3>Historial</h3>
+                <button class="btn-cerrar-panel" id="cerrarHistorial">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div>
+                        <h3>Super 98.1 FM</h3>
+                        <p>Cuernavaca, México</p>
+                    </div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div>
+                        <h3>Radio Fórmula</h3>
+                        <p>Ciudad de México, México</p>
+                    </div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div>
+                        <h3>BBC Radio 1</h3>
+                        <p>Londres, Reino Unido</p>
+                    </div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+        </div>
+
+        <div class="panel-amigos" id="panelAmigos">
+            <div class="panel-header">
+                <button class="btn-cerrar-panel" id="cerrarAmigos">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                <h3>Amigos</h3>
+            </div>
+
+            <div class="buscador-amigos">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="inputBuscarAmigo" placeholder="Buscar por usuario...">
+            </div>
+
+            <div class="lista-amigos" id="listaAmigos">
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <h3>@karla_cruz</h3>
+                            <p>En línea</p>
+                        </div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <h3>@arturo_hm</h3>
+                            <p>Escuchando radio</p>
+                        </div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div>
+                            <h3>@gael_razo</h3>
+                            <p>Desconectado</p>
+                        </div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <script src="estrellas.js"></script>
+
+    <script>
+        const btnHistorial = document.querySelector('a[href="historial.html"]');
+        const panel = document.getElementById('panelHistorial');
+        const cerrar = document.getElementById('cerrarHistorial');
+
+        btnHistorial.addEventListener('click', function (e) {
+            e.preventDefault();
+            panel.classList.toggle('abierto');
+        });
+
+        cerrar.addEventListener('click', function () {
+            panel.classList.remove('abierto');
+        });
+
+        document.getElementById('btnUnirse').addEventListener('click', function () {
+            const codigo = document.getElementById('inputCodigoJam').value.trim();
+            if (codigo.length === 6) {
+                window.location.href = 'jam.html';
+            } else {
+                document.getElementById('inputCodigoJam').style.borderColor = '#ff4444';
+                setTimeout(() => {
+                    document.getElementById('inputCodigoJam').style.borderColor = '#1cf00c';
+                }, 2000);
+            }
+        });
+    </script>
+
+</body>
+
+</html>
+
+</html>
