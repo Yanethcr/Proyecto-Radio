@@ -1,0 +1,909 @@
+/* =========================================
+
+
+/* BASICOO*/
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/****************************************************************************************************/
+
+/* Body general*/
+body {
+    font-family: Arial, sans-serif;
+    color: #FFFFFF;
+    background: linear-gradient(to right, #410238, #8c008e);
+}
+
+/***************************************************************************************************/
+/* Header*/
+header {
+    background-color: rgb(76, 0, 69);
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    box-sizing: border-box;
+}
+
+/**************************************************************************************************************/
+/*Main*/
+main {
+    padding: 40px;
+    text-align: center;
+    padding-top: 80px;
+    position: relative;
+}
+
+.main-form {
+    padding-top: 60px;
+    padding-bottom: 60px;
+}
+
+.main-login {
+    padding-top: 60px;
+    padding-bottom: 60px;
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: center;
+}
+
+/*************************************************************************************************************/
+/* Footer */
+
+footer {
+    background-color: rgb(76, 0, 69);
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+
+
+/***********************************************************************************************************/
+/* Nav */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 40px;
+}
+
+.logo a {
+    color: #1cf00c;
+    text-decoration: none;
+}
+
+.nav-links {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-links a {
+    color: rgb(255, 255, 255);
+    text-decoration: none;
+    font-size: 16px;
+}
+
+.nav-links a:hover {
+    color: #470550;
+}
+
+/*************************************************************************************************************/
+/* Pagina principal sin loggearse */
+.hero {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 80px 40px;
+    gap: 40px;
+}
+
+.hero-texto {
+    max-width: 500px;
+}
+
+.hero-texto h2 {
+    font-size: 42px;
+    margin-bottom: 20px;
+    color: #1cf00c;
+}
+
+.hero-texto p {
+    font-size: 18px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    color: #cccccc;
+}
+
+.btn {
+    background-color: #1cf00c;
+    color: #1a0033;
+    padding: 12px 30px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.btn:hover {
+    background-color: #1a0033;
+    color: #1cf00c;
+    transform: scale(1.05);
+    transition: all 0.2s ease;
+}
+
+.globo-placeholder {
+    width: 400px;
+    height: 400px;
+    background-color: #0b0213;
+    border-radius: 50%;
+    border: 2px solid #1cf00c;
+}
+
+/****************************************************************************************************************/
+/* Botones del nav */
+.btn-nav {
+    background-color: transparent;
+    border: 1px solid #1cf00c;
+    color: #1cf00c;
+    padding: 8px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-nav:hover {
+    background-color: #1cf00c;
+    color: #1a0033;
+}
+
+.btn-cerrar {
+    background-color: transparent;
+    border: 1px solid #1cf00c;
+    color: #1cf00c;
+    padding: 8px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.btn-cerrar:hover {
+    background-color: #1cf00c;
+    color: #1a0033;
+}
+
+/****************************************************************************************************************/
+/* Diseño de los formularios de registro y login */
+
+
+.form-titulo {
+    text-align: left;
+    color: #1cf00c;
+    font-size: 20px;
+    max-width: 450px;
+    margin: 0 auto 10px auto;
+}
+
+.login-layout {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 60px;
+    padding: 0 200px;
+    flex-direction: row;
+}
+
+.registro-layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    padding: 0 5px;
+    flex-direction: row;
+}
+
+.form-container {
+    max-width: 500px;
+    margin: 5px auto;
+    background-color: #2d0057;
+    padding: 25px 35px;
+    border-radius: 15px;
+    width: 650px;
+    text-align: left;
+}
+
+.form-grupo {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+}
+
+.form-grupo label {
+    margin-bottom: 4px;
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.form-grupo input {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #5500aa;
+    background-color: #1a0033;
+    color: white;
+    font-size: 14px;
+}
+
+.form-container .btn {
+    width: 100%;
+    text-align: center;
+    display: block;
+    margin-top: 8px;
+    padding: 10px;
+}
+
+.form-link {
+    text-align: center;
+    margin-top: 12px;
+    color: #cccccc;
+    font-size: 13px;
+}
+
+.form-link a {
+    color: #1cf00c;
+    text-decoration: none;
+}
+
+.header-bottom {
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    width: 100%;
+    z-index: 100;
+    background-color: rgb(76, 0, 69);
+    box-sizing: border-box;
+}
+
+/*****************************************************************************************************************/
+/* Ventana loggin globo */
+.globo-seccion {
+    display: flex;
+    justify-content: center;
+    padding: 20px 40px;
+    padding-bottom: 150px;
+}
+
+.globo-placeholder.grande {
+    width: 450px;
+    height: 450px;
+}
+
+/************************************************************************************************************/
+/* Pagina de usuario loggeado */
+.reproductor {
+    display: grid;
+    grid-template-columns: 1fr auto 2fr auto 1fr;
+    align-items: center;
+    gap: 30px;
+    background-color: #2d0057;
+    padding: 15px 40px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    border-top: 2px solid #1cf00c;
+}
+
+.reproductor-controles {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+}
+
+.reproductor-acciones {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+}
+
+.reproductor-acciones a {
+    text-decoration: none;
+}
+
+.reproductor-acciones .icono-btn {
+    background-color: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+}
+
+.reproductor-acciones .icono-btn:hover {
+    background-color: transparent;
+    color: #1cf00c;
+}
+
+.control-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.control-btn:hover {
+    color: #1cf00c;
+}
+
+.estacion-nombre {
+    font-size: 18px;
+    color: #1cf00c;
+}
+
+.estacion-lugar {
+    font-size: 14px;
+    color: #cccccc;
+}
+
+.reproductor-volumen {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 20px;
+}
+
+.reproductor-volumen input {
+    accent-color: #1cf00c;
+}
+
+/***************************************************************************************************************/
+/*Diseño barra de busqueda */
+.barra-busqueda {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    border-radius: 25px;
+    width: 400px;
+    gap: 10px;
+    margin: 20px auto;
+    z-index: 10;
+}
+
+.barra-busqueda input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    width: 100%;
+}
+
+.barra-busqueda input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.barra-busqueda i {
+    color: white;
+}
+
+/****************************************************************************************************************/
+/*Iconos Laterales*/
+.iconos-lateral {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    z-index: 10;
+}
+
+.icono-btn {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border: none;
+    color: white;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icono-btn:hover {
+    background-color: #1cf00c;
+    color: #1a0033;
+}
+
+/************************************************************************************************************/
+/*Diseño Jam */
+
+.jam-body header {
+    background-color: rgb(76, 0, 69);
+}
+
+.logo-jam {
+    color: #1cf00c;
+    font-weight: bold;
+    font-size: 18px;
+    text-decoration: none;
+    letter-spacing: 2px;
+}
+
+.jam-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 30px;
+    gap: 25px;
+    background-image: radial-gradient(circle, rgba(0, 100, 255, 0.2) 0%, transparent 60%);
+}
+
+.jam-body footer {
+    background-color: rgb(76, 0, 69);
+    padding: 20px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.jam-titulo {
+    font-size: 36px;
+    color: white;
+    text-align: center;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.8);
+}
+
+.jam-botones {
+    display: flex;
+    gap: 25px;
+}
+
+.jam-controles {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+
+.btn-jam {
+    background-color: #1cf00c;
+    color: #1a0033;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 25px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-jam:hover {
+    background-color: #1a0033;
+    color: #1cf00c;
+}
+
+.jam-reproductor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(45, 0, 87, 0.7);
+    backdrop-filter: blur(10px);
+    padding: 20px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.jam-escuchando {
+    color: #cccccc;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+.jam-estacion {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+
+.jam-lugar {
+    color: #cccccc;
+    font-size: 14px;
+}
+
+.barra-busqueda-jam {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 15px 25px;
+    border-radius: 25px;
+    width: 100%;
+    max-width: 500px;
+    gap: 10px;
+}
+
+.barra-busqueda-jam input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 16px;
+    width: 100%;
+}
+
+.barra-busqueda-jam input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.barra-busqueda-jam i {
+    color: white;
+}
+
+/****************************************************************************************************/
+/*Lista de fav e historial */
+.lista-seccion {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.lista-titulo {
+    color: #1cf00c;
+    font-size: 28px;
+    margin-bottom: 30px;
+}
+
+.lista-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #2d0057;
+    padding: 20px 25px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+}
+
+.lista-item:hover {
+    background-color: #3d0070;
+}
+
+.lista-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.lista-info i.fa-radio {
+    font-size: 28px;
+    color: #1cf00c;
+}
+
+.lista-info h3 {
+    font-size: 16px;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.lista-info p {
+    font-size: 13px;
+    color: #cccccc;
+}
+
+.lista-acciones {
+    display: flex;
+    gap: 15px;
+}
+
+.btn-eliminar {
+    color: #ff4444;
+}
+
+.btn-eliminar:hover {
+    color: #ff0000;
+}
+
+/*************************************************************************************************************/
+/*Diseño de la ventana historial */
+.panel-historial {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100%;
+    background-color: #2d0057;
+    padding: 25px;
+    z-index: 100;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    padding-bottom: 100px;
+}
+
+.panel-historial.abierto {
+    right: 0;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.panel-header h3 {
+    color: #1cf00c;
+    font-size: 22px;
+}
+
+.btn-cerrar-panel {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+}
+
+.btn-cerrar-panel:hover {
+    color: #1cf00c;
+}
+
+/*********************************************************************************************/
+/*Amigos en la jam ventana */
+.panel-amigos {
+    position: fixed;
+    top: 0;
+    right: -400px;
+    width: 380px;
+    height: 100%;
+    background-color: #2d0057;
+    padding: 25px;
+    z-index: 100;
+    transition: right 0.3s ease;
+    overflow-y: auto;
+    padding-bottom: 100px;
+}
+
+.panel-amigos.abierto {
+    right: 0;
+}
+
+.buscador-amigos {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 20px;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.buscador-amigos input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    font-size: 15px;
+    width: 100%;
+}
+
+.buscador-amigos input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.buscador-amigos i {
+    color: white;
+}
+
+.amigo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+}
+
+.amigo-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.amigo-item .fa-user-circle {
+    font-size: 32px;
+    color: #1cf00c;
+}
+
+.btn-invitar-jam {
+    color: #1cf00c;
+}
+
+/*********************************************************************************************
+/* Diseño de codigo jam */
+.codigo-jam {
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+
+.codigo-jam p {
+    color: #cccccc;
+    font-size: 13px;
+    margin-bottom: 8px;
+}
+
+.codigo-contenedor {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+#codigoSala {
+    color: #1cf00c;
+    font-size: 22px;
+    font-weight: bold;
+    letter-spacing: 4px;
+}
+
+.btn-copiar {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn-copiar:hover {
+    color: #1cf00c;
+}
+
+.btn-generar {
+    width: 100%;
+    background-color: #1cf00c;
+    color: #1a0033;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-generar:hover {
+    background-color: #1cf00c;
+}
+
+/* *******************************************************************************************/
+/*Diseño jam*/
+.unirse-jam {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.unirse-jam input {
+    background-color: #470550;
+    border: 1px solid #1cf00c;
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+    outline: none;
+    width: 140px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.unirse-jam input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    letter-spacing: 0px;
+    text-transform: none;
+}
+
+.unirse-jam input:focus {
+    border-color: #1cf00c;
+}
+
+.btn-unirse {
+    background-color: #1cf00c;
+    color: #1a0033;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-unirse:hover {
+    background-color: #00cc6a;
+}
+
+/*********************************************************************************************************/
+
+/*fondo de estrellas*/
+
+html,
+body {
+    min-height: 100vh;
+}
+
+#universe {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+}
+
+header,
+main,
+footer {
+    position: relative;
+    z-index: 1;
+}
+
+.cuerpo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.star0 {
+    height: 1px;
+    width: 1px;
+    opacity: 1;
+    position: absolute;
+}
+
+.star1 {
+    height: 2px;
+    width: 2px;
+    border-radius: 50%;
+    opacity: 1;
+    position: absolute;
+}
+
+.star2 {
+    height: 3px;
+    width: 3px;
+    border-radius: 50%;
+    opacity: 1;
+    position: absolute;
+}
+
+.star3 {
+    height: 4px;
+    width: 4px;
+    border-radius: 50%;
+    opacity: 1;
+    position: absolute;
+}
