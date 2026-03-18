@@ -2,6 +2,12 @@
 <html lang="es">
 
 <head>
+    <script>
+        // Guard de sesión — redirige si no está loggeado
+        if (!sessionStorage.getItem('at_logged')) {
+            window.location.replace('inicio.html');
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Favoritos - Audio Traveler</title>
@@ -9,14 +15,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
-<body>
+<body class="no-reproductor">
     <div id="universe"></div>
+
     <header>
         <nav>
             <div class="logo">
-                <a href="index.html">
-                    <h1>Audio Traveler</h1>
-                </a>
+                <a href="index.html"><h1>Audio Traveler</h1></a>
             </div>
             <div class="nav-links">
                 <a href="usuarioLoggeado.html" class="btn-nav">Regresar</a>
@@ -29,7 +34,9 @@
         <section class="lista-seccion">
             <h2 class="lista-titulo">Mis Favoritos</h2>
 
-            <div class="lista-item">
+            <!-- Las estaciones favoritas tienen data-station con el nombre
+                 para buscarlas en Radio Browser al reproducir -->
+            <div class="lista-item" data-station="Super 98.1 FM" data-country="MX">
                 <div class="lista-info">
                     <i class="fas fa-radio"></i>
                     <div>
@@ -38,13 +45,19 @@
                     </div>
                 </div>
                 <div class="lista-acciones">
-                    <button class="control-btn"><i class="fas fa-play"></i></button>
-                    <button class="control-btn"><i class="fas fa-heart" style="color:#1cf00c"></i></button>
-                    <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    <button class="control-btn btn-play-fav" title="Reproducir">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn">
+                        <i class="fas fa-heart" style="color:#1cf00c"></i>
+                    </button>
+                    <button class="control-btn btn-eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="lista-item">
+            <div class="lista-item" data-station="Radio Formula" data-country="MX">
                 <div class="lista-info">
                     <i class="fas fa-radio"></i>
                     <div>
@@ -53,13 +66,19 @@
                     </div>
                 </div>
                 <div class="lista-acciones">
-                    <button class="control-btn"><i class="fas fa-play"></i></button>
-                    <button class="control-btn"><i class="fas fa-heart" style="color:#1cf00c"></i></button>
-                    <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    <button class="control-btn btn-play-fav" title="Reproducir">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn">
+                        <i class="fas fa-heart" style="color:#1cf00c"></i>
+                    </button>
+                    <button class="control-btn btn-eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
 
-            <div class="lista-item">
+            <div class="lista-item" data-station="BBC Radio 1" data-country="GB">
                 <div class="lista-info">
                     <i class="fas fa-radio"></i>
                     <div>
@@ -68,22 +87,141 @@
                     </div>
                 </div>
                 <div class="lista-acciones">
-                    <button class="control-btn"><i class="fas fa-play"></i></button>
-                    <button class="control-btn"><i class="fas fa-heart" style="color:#1cf00c"></i></button>
-                    <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    <button class="control-btn btn-play-fav" title="Reproducir">
+                        <i class="fas fa-play"></i>
+                    </button>
+                    <button class="control-btn">
+                        <i class="fas fa-heart" style="color:#1cf00c"></i>
+                    </button>
+                    <button class="control-btn btn-eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             </div>
-
         </section>
-    </main>
-    <script src="estrellas.js"></script>
 
+        <!-- Mini reproductor para favoritos -->
+        <div class="fav-reproductor" id="favReproductor" style="display:none;">
+            <div class="fav-rep-info">
+                <i class="fas fa-radio" style="color:#1cf00c;margin-right:10px;"></i>
+                <span id="favNombre">-</span>
+            </div>
+            <div class="fav-rep-controles">
+                <button class="control-btn" id="favPlayPause">
+                    <i class="fas fa-pause"></i>
+                </button>
+                <button class="control-btn" id="favStop">
+                    <i class="fas fa-stop"></i>
+                </button>
+                <div class="reproductor-volumen">
+                    <i class="fas fa-volume-high"></i>
+                    <input type="range" min="0" max="100" value="70" id="favVolumen">
+                </div>
+            </div>
+        </div>
+    </main>
 
     <footer>
-        <p>&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
+    <script src="estrellas.js"></script>
     <script>
+        const RADIO_API = 'https://de1.api.radio-browser.info/json';
+        const aud = new Audio();
+        aud.crossOrigin = 'anonymous';
+        let audioActivo = null;
+
+        // Volumen
+        document.getElementById('favVolumen').addEventListener('input', function () {
+            aud.volume = this.value / 100;
+        });
+
+        // Play/Pause del mini reproductor
+        document.getElementById('favPlayPause').addEventListener('click', () => {
+            if (aud.paused) {
+                aud.play().catch(() => {});
+                document.getElementById('favPlayPause').innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                aud.pause();
+                document.getElementById('favPlayPause').innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        // Stop
+        document.getElementById('favStop').addEventListener('click', () => {
+            aud.pause(); aud.src = ''; audioActivo = null;
+            document.getElementById('favReproductor').style.display = 'none';
+            document.querySelectorAll('.btn-play-fav').forEach(b =>
+                b.innerHTML = '<i class="fas fa-play"></i>');
+        });
+
+        // Buscar y reproducir estación
+        async function reproducirFav(nombre, countryCode, btn) {
+            // Si ya está sonando esta estación, toggle pause
+            if (audioActivo === nombre) {
+                if (aud.paused) {
+                    aud.play().catch(() => {});
+                    btn.innerHTML = '<i class="fas fa-pause"></i>';
+                    document.getElementById('favPlayPause').innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    aud.pause();
+                    btn.innerHTML = '<i class="fas fa-play"></i>';
+                    document.getElementById('favPlayPause').innerHTML = '<i class="fas fa-play"></i>';
+                }
+                return;
+            }
+
+            // Resetear otros botones
+            document.querySelectorAll('.btn-play-fav').forEach(b =>
+                b.innerHTML = '<i class="fas fa-play"></i>');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                // Buscar por nombre en Radio Browser
+                const url = `${RADIO_API}/stations/search?name=${encodeURIComponent(nombre)}&countrycodeexact=${countryCode}&hidebroken=true&order=votes&reverse=true&limit=5`;
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                if (!data.length) throw new Error('No encontrada');
+
+                const stream = data[0].url_resolved || data[0].url;
+                aud.src = stream;
+                await aud.play();
+                audioActivo = nombre;
+                btn.innerHTML = '<i class="fas fa-pause"></i>';
+                document.getElementById('favNombre').textContent = data[0].name;
+                document.getElementById('favReproductor').style.display = 'flex';
+                document.getElementById('favPlayPause').innerHTML = '<i class="fas fa-pause"></i>';
+            } catch (e) {
+                btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                setTimeout(() => { btn.innerHTML = '<i class="fas fa-play"></i>'; }, 2000);
+            }
+        }
+
+        // Asignar eventos a los botones de play
+        document.querySelectorAll('.btn-play-fav').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const item    = this.closest('.lista-item');
+                const nombre  = item.dataset.station;
+                const country = item.dataset.country;
+                reproducirFav(nombre, country, this);
+            });
+        });
+
+        // Eliminar item
         document.querySelectorAll('.btn-eliminar').forEach(btn => {
             btn.addEventListener('click', function () {
                 const item = this.closest('.lista-item');
@@ -94,8 +232,55 @@
         });
     </script>
 
-</body>
+    <style>
+        /* Mini reproductor de favoritos */
+        .fav-reproductor {
+            position: fixed;
+            bottom: 48px;  /* encima del footer */
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(22, 0, 40, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(28, 240, 12, 0.3);
+            border-radius: var(--radius-pill);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 200;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.4), 0 0 20px rgba(28,240,12,0.05);
+            min-width: 400px;
+        }
+        .fav-rep-info {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--text-primary);
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .fav-rep-controles {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
 
+    <script>
+        // Cerrar sesión — limpiar sessionStorage
+        document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem('at_logged');
+                sessionStorage.removeItem('at_user');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
 </body>
 
 </html>

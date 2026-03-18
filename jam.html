@@ -2,6 +2,12 @@
 <html lang="es">
 
 <head>
+    <script>
+        // Guard de sesión — redirige si no está loggeado
+        if (!sessionStorage.getItem('at_logged')) {
+            window.location.replace('inicio.html');
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jam - Audio Traveler</title>
@@ -9,7 +15,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
-<body class="jam-body">
+<body class="jam-body no-reproductor">
     <div id="universe"></div>
 
     <header>
@@ -28,7 +34,7 @@
 
     <main class="jam-main">
 
-        <h2 class="jam-titulo">Jam de Usuario..</h2>
+        <h2 class="jam-titulo">Jam de Usuario</h2>
 
         <div class="jam-botones">
             <button class="btn-jam" id="btnInvitar">Invitar</button>
@@ -39,7 +45,7 @@
 
         <div class="jam-reproductor">
             <div class="jam-info">
-                <p class="jam-escuchando">Estas escuchando:</p>
+                <p class="jam-escuchando">Estás escuchando:</p>
                 <h3 class="jam-estacion">Super 98.1 FM Cuernavaca</h3>
                 <p class="jam-lugar">Cuernavaca, México</p>
             </div>
@@ -58,7 +64,19 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <div class="panel-amigos" id="panelAmigos">
@@ -128,6 +146,8 @@
         </div>
     </div>
 
+    <script src="estrellas.js"></script>
+
     <script>
         document.getElementById('btnInvitar').addEventListener('click', function () {
             document.getElementById('panelAmigos').classList.toggle('abierto');
@@ -175,6 +195,17 @@
         });
     </script>
 
+    <script>
+        // Cerrar sesión — limpiar sessionStorage
+        document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem('at_logged');
+                sessionStorage.removeItem('at_user');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
 </body>
 
 </html>

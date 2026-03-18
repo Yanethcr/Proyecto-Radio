@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<body class="no-reproductor">
     <div id="universe"></div>
 
     <header>
@@ -41,18 +41,44 @@
                     <label>Contraseña</label>
                     <input type="password" placeholder="••••••••">
                 </div>
-                <button class="btn">Iniciar Sesión</button>
+                <button class="btn" id="btnLogin" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Iniciar Sesión</button>
                 <p class="form-link">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
             </div>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="estrellas.js"></script>
 
+    <script>
+        document.getElementById('btnLogin').addEventListener('click', function() {
+            const email = document.querySelector('input[type="email"]').value.trim();
+            const pass  = document.querySelector('input[type="password"]').value.trim();
+            if (!email || !pass) {
+                document.querySelector('input[type="email"]').style.borderColor = '#ff4444';
+                setTimeout(() => document.querySelector('input[type="email"]').style.borderColor = '', 2000);
+                return;
+            }
+            sessionStorage.setItem('at_logged', '1');
+            sessionStorage.setItem('at_user', email);
+            window.location.href = 'usuarioLoggeado.html';
+        });
+    </script>
 </body>
 
 </html>

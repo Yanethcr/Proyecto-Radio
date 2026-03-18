@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 
-<body>
+<body class="no-reproductor">
     <div id="universe"></div>
 
     <header>
@@ -57,17 +57,54 @@
                     <label>Confirmar contraseña</label>
                     <input type="password" placeholder="••••••••">
                 </div>
-                <a href="usuarioLoggeado.html" class="btn">Crear cuenta</a>
+                <button class="btn" id="btnRegistro" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Crear cuenta</button>
                 <p class="form-link">¿Ya tienes cuenta? <a href="inicio.html">Inicia sesión</a></p>
             </div>
         </section>
     </main>
+
     <footer>
-        <p>&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
     </footer>
 
     <script src="estrellas.js"></script>
 
+    <script>
+        document.getElementById('btnRegistro').addEventListener('click', function() {
+            const nombre = document.querySelector('input[type="text"]').value.trim();
+            const email  = document.querySelector('input[type="email"]').value.trim();
+            const pass   = document.querySelectorAll('input[type="password"]')[0].value.trim();
+            const pass2  = document.querySelectorAll('input[type="password"]')[1].value.trim();
+            if (!nombre || !email || !pass || pass !== pass2) {
+                this.style.background = 'transparent';
+                this.style.color = '#ff4444';
+                this.style.borderColor = '#ff4444';
+                this.textContent = pass !== pass2 ? 'Las contraseñas no coinciden' : 'Completa todos los campos';
+                setTimeout(() => {
+                    this.style.background = '';
+                    this.style.color = '';
+                    this.style.borderColor = '';
+                    this.textContent = 'Crear cuenta';
+                }, 2500);
+                return;
+            }
+            sessionStorage.setItem('at_logged', '1');
+            sessionStorage.setItem('at_user', email);
+            window.location.href = 'usuarioLoggeado.html';
+        });
+    </script>
 </body>
 
 </html>
