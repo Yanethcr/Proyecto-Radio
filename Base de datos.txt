@@ -1,0 +1,104 @@
+-- CREA LA BASE DE DATOS
+
+CREATE DATABASE IF NOT EXISTS radiojamdb
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
+
+USE RadioJamDB;
+
+
+
+
+-- CREACIÓN DE TABLAS
+
+-- Tabla: Pais
+CREATE TABLE Pais (
+    IdPais      INT PRIMARY KEY AUTO_INCREMENT,
+    Nombre      VARCHAR(100) NOT NULL,
+    CodigoISO   VARCHAR(10)  NOT NULL
+);
+
+-- Tabla: Ciudades
+CREATE TABLE Ciudades (
+    IdCiudad    INT PRIMARY KEY AUTO_INCREMENT,
+    IdPais      INT NOT NULL,
+    Nombre      VARCHAR(100) NOT NULL,
+    Latitud     DECIMAL(10, 7),
+    Longitud    DECIMAL(10, 7),
+    FOREIGN KEY (IdPais) REFERENCES Pais(IdPais)
+);
+
+-- Tabla: Usuarios
+CREATE TABLE Usuarios (
+    IdUsuario   INT PRIMARY KEY AUTO_INCREMENT,
+    Username    VARCHAR(50)  NOT NULL UNIQUE,
+    Correo      VARCHAR(100) NOT NULL UNIQUE,
+    Contraseña  VARCHAR(255) NOT NULL
+);
+
+-- Tabla: Estaciones
+CREATE TABLE Estaciones (
+    IdEstacion  INT PRIMARY KEY AUTO_INCREMENT,
+    IdCiudad    INT NOT NULL,
+    Nombre      VARCHAR(100) NOT NULL,
+    Stream_url  VARCHAR(255),
+    Descripcion TEXT,
+    Genero      VARCHAR(50),
+    VVID_API    VARCHAR(100),
+    FOREIGN KEY (IdCiudad) REFERENCES Ciudades(IdCiudad)
+);
+
+-- Tabla: Amigos
+CREATE TABLE Amigos (
+    IdAmigos        INT PRIMARY KEY AUTO_INCREMENT,
+    Username        VARCHAR(50) NOT NULL,
+    IdUsuarioAmigo  INT NOT NULL,
+    Estado          VARCHAR(20),
+    FOREIGN KEY (Username)       REFERENCES Usuarios(Username),
+    FOREIGN KEY (IdUsuarioAmigo) REFERENCES Usuarios(IdUsuario)
+);
+
+-- Tabla: Favoritos
+CREATE TABLE Favoritos (
+    IdFavorito      INT PRIMARY KEY AUTO_INCREMENT,
+    IdUsuario       INT NOT NULL,
+    IdEstacion      INT NOT NULL,
+    FechaAgregado   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (IdUsuario)  REFERENCES Usuarios(IdUsuario),
+    FOREIGN KEY (IdEstacion) REFERENCES Estaciones(IdEstacion)
+);
+
+-- Tabla: Historial
+CREATE TABLE Historial (
+    IdHistorial         INT PRIMARY KEY AUTO_INCREMENT,
+    IdUsuario           INT NOT NULL,
+    IdEstacion          INT NOT NULL,
+    FechaEscucha        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    DuracionSegundos    INT,
+    FOREIGN KEY (IdUsuario)  REFERENCES Usuarios(IdUsuario),
+    FOREIGN KEY (IdEstacion) REFERENCES Estaciones(IdEstacion)
+);
+
+-- Tabla: Jam
+CREATE TABLE Jam (
+    IdJam       INT PRIMARY KEY AUTO_INCREMENT,
+    IdEstacion  INT NOT NULL,
+    IdCreador   INT NOT NULL,
+    Codigo      VARCHAR(50) UNIQUE,
+    Estado      VARCHAR(20),
+    FechaInicio DATETIME,
+    FechaFin    DATETIME,
+    FOREIGN KEY (IdEstacion) REFERENCES Estaciones(IdEstacion),
+    FOREIGN KEY (IdCreador)  REFERENCES Usuarios(IdUsuario)
+);
+
+-- Tabla: JamUsuario
+CREATE TABLE JamUsuario (
+    IdJamUsuario    INT PRIMARY KEY AUTO_INCREMENT,
+    IdJam           INT NOT NULL,
+    IdUsuario       INT NOT NULL,
+    FechaUnion      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Rol             VARCHAR(20),
+    FOREIGN KEY (IdJam)     REFERENCES Jam(IdJam),
+    FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario)
+);
