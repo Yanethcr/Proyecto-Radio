@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        // Guard de sesión — redirige si no está loggeado
+        if (!sessionStorage.getItem('at_logged')) {
+            window.location.replace('inicio.html');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Traveler</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <div id="universe"></div>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html"><h1>Audio Traveler</h1></a>
+            </div>
+            <div class="nav-links">
+                <a href="favoritos.html" class="btn-nav">Favoritos</a>
+                <a href="historial.html" class="btn-nav">Historial</a>
+                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
+                <div class="jam-dropdown-wrapper">
+                    <button class="btn-jam-nav" id="btnAbrirJam">
+                        <i class="fas fa-headphones"></i> Unirse a Jam
+                    </button>
+                    <div class="jam-dropdown" id="dropdownJam">
+                        <p class="jam-dropdown-title">
+                            <i class="fas fa-door-open"></i> Unirse a una Jam
+                        </p>
+                        <input class="jam-dropdown-input" type="text" id="inputCodigoJam"
+                               placeholder="Código de sala" maxlength="6">
+                        <button class="jam-dropdown-btn" id="btnUnirse" disabled>Entrar</button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="barra-busqueda">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar ciudad, país o estación">
+        </div>
+
+        <!-- Globo 3D -->
+        <section class="globo-seccion">
+            <div id="globo-canvas"></div>
+            <p class="globo-hint">
+                <i class="fas fa-hand-pointer"></i> Haz clic en un país para ver sus emisoras
+            </p>
+        </section>
+
+        <!-- Panel lateral de emisoras -->
+        <div class="panel-emisoras" id="panel-emisoras">
+            <div class="panel-header">
+                <h3 id="panel-pais">Emisoras</h3>
+                <button class="btn-cerrar-panel" id="panel-cerrar">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="panel-loader" id="panel-loader">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>Cargando emisoras...</span>
+            </div>
+            <div class="lista-emisoras" id="panel-lista"></div>
+        </div>
+
+        <div class="iconos-lateral">
+            <button class="icono-btn" title="Privado"><i class="fas fa-lock"></i></button>
+            <button class="icono-btn" title="Compartir"><i class="fas fa-share-nodes"></i></button>
+            <button class="icono-btn" title="Enviar"><i class="fas fa-paper-plane"></i></button>
+            <button class="icono-btn" title="Aleatoria"><i class="fas fa-dice"></i></button>
+        </div>
+
+        <section class="reproductor">
+            <div class="reproductor-info">
+                <h3 class="estacion-nombre" id="rep-nombre">Selecciona una emisora</h3>
+                <p class="estacion-lugar" id="rep-lugar">Haz clic en un país del globo</p>
+            </div>
+            <div class="reproductor-acciones">
+                <button class="icono-btn" title="Favorito"><i class="fas fa-heart"></i></button>
+                <a href="jam.html">
+                    <button class="icono-btn" title="Jam"><i class="fas fa-user-group"></i></button>
+                </a>
+            </div>
+            <div class="reproductor-controles">
+                <button class="control-btn"><i class="fas fa-backward-step"></i></button>
+                <button class="control-btn" id="rep-playpause"><i class="fas fa-play"></i></button>
+                <button class="control-btn"><i class="fas fa-forward-step"></i></button>
+            </div>
+            <div class="reproductor-volumen">
+                <i class="fas fa-volume-high"></i>
+                <input type="range" min="0" max="100" value="70" id="rep-volumen">
+            </div>
+        </section>
+
+        <!-- Panel Historial -->
+        <div class="panel-historial" id="panelHistorial">
+            <div class="panel-header">
+                <h3>Historial</h3>
+                <button class="btn-cerrar-panel" id="cerrarHistorial">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div><h3>Super 98.1 FM</h3><p>Cuernavaca, México</p></div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div><h3>Radio Fórmula</h3><p>Ciudad de México, México</p></div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+            <div class="lista-item">
+                <div class="lista-info">
+                    <i class="fas fa-radio"></i>
+                    <div><h3>BBC Radio 1</h3><p>Londres, Reino Unido</p></div>
+                </div>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+            </div>
+        </div>
+
+        <!-- Panel Amigos -->
+        <div class="panel-amigos" id="panelAmigos">
+            <div class="panel-header">
+                <h3>Amigos</h3>
+                <button class="btn-cerrar-panel" id="cerrarAmigos">
+                    <i class="fas fa-xmark"></i>
+                </button>
+            </div>
+            <div class="buscador-amigos">
+                <i class="fas fa-magnifying-glass"></i>
+                <input type="text" id="inputBuscarAmigo" placeholder="Buscar por usuario...">
+            </div>
+            <div class="lista-amigos" id="listaAmigos">
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div><h3>@karla_cruz</h3><p>En línea</p></div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div><h3>@arturo_hm</h3><p>Escuchando radio</p></div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+                <div class="amigo-item">
+                    <div class="lista-info">
+                        <i class="fas fa-user-circle"></i>
+                        <div><h3>@gael_razo</h3><p>Desconectado</p></div>
+                    </div>
+                    <div class="lista-acciones">
+                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
+                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer omitido: el reproductor fijo ocupa esa zona -->
+
+    <script src="estrellas.js"></script>
+    <!-- Three.js r128 + TopoJSON desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+    <script src="globo.js"></script>
+
+    <script>
+        // Historial
+        document.querySelector('a[href="historial.html"]').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('panelHistorial').classList.toggle('abierto');
+        });
+        document.getElementById('cerrarHistorial').addEventListener('click', () =>
+            document.getElementById('panelHistorial').classList.remove('abierto'));
+
+        // Dropdown Jam
+        const btnAbrir  = document.getElementById('btnAbrirJam');
+        const dropdown  = document.getElementById('dropdownJam');
+        const inputCod  = document.getElementById('inputCodigoJam');
+        const btnEntrar = document.getElementById('btnUnirse');
+
+        btnAbrir.addEventListener('click', e => {
+            e.stopPropagation();
+            dropdown.classList.toggle('abierto');
+            if (dropdown.classList.contains('abierto')) inputCod.focus();
+        });
+        document.addEventListener('click', e => {
+            if (!dropdown.contains(e.target) && e.target !== btnAbrir)
+                dropdown.classList.remove('abierto');
+        });
+        inputCod.addEventListener('input', () => {
+            btnEntrar.disabled = inputCod.value.trim().length !== 6;
+        });
+        btnEntrar.addEventListener('click', () => {
+            if (inputCod.value.trim().length === 6) window.location.href = 'jam.html';
+        });
+
+        // Buscar amigos
+        document.getElementById('inputBuscarAmigo').addEventListener('input', function() {
+            const t = this.value.toLowerCase();
+            document.querySelectorAll('.amigo-item').forEach(item => {
+                item.style.display =
+                    item.querySelector('h3').textContent.toLowerCase().includes(t) ? 'flex' : 'none';
+            });
+        });
+
+        // Volumen
+        document.getElementById('rep-volumen').addEventListener('input', function() {
+            if (window._audGlobo) window._audGlobo.volume = this.value / 100;
+        });
+    </script>
+
+    <script>
+        // Cerrar sesión — limpiar sessionStorage
+        document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem('at_logged');
+                sessionStorage.removeItem('at_user');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>
