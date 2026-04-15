@@ -33,13 +33,14 @@
                 <p>Inicia sesión y sigue explorando radios de todo el mundo.</p>
             </div>
             <div class="form-container">
+                <div id="mensaje" style="display:none; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:14px;"></div>
                 <div class="form-grupo">
                     <label>Correo electrónico</label>
-                    <input type="email" placeholder="correo@ejemplo.com">
+                    <input type="email" id="correo" placeholder="correo@ejemplo.com">
                 </div>
                 <div class="form-grupo">
                     <label>Contraseña</label>
-                    <input type="password" placeholder="••••••••">
+                    <input type="password" id="contrasena" placeholder="••••••••">
                 </div>
                 <button class="btn" id="btnLogin" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Iniciar Sesión</button>
                 <p class="form-link">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
@@ -66,18 +67,45 @@
     <script src="estrellas.js"></script>
 
     <script>
-        document.getElementById('btnLogin').addEventListener('click', function() {
-            const email = document.querySelector('input[type="email"]').value.trim();
-            const pass  = document.querySelector('input[type="password"]').value.trim();
-            if (!email || !pass) {
-                document.querySelector('input[type="email"]').style.borderColor = '#ff4444';
-                setTimeout(() => document.querySelector('input[type="email"]').style.borderColor = '', 2000);
+        document.getElementById("btnLogin").addEventListener("click", async () => {
+            const correo     = document.getElementById("correo").value.trim();
+            const contrasena = document.getElementById("contrasena").value.trim();
+
+            if (!correo || !contrasena) {
+                mostrarMensaje("Por favor completa todos los campos.", "error");
                 return;
             }
-            sessionStorage.setItem('at_logged', '1');
-            sessionStorage.setItem('at_user', email);
-            window.location.href = 'usuarioLoggeado.html';
+
+            try {
+                const res  = await fetch("backend/login.php", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ correo, contrasena })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    mostrarMensaje("¡Bienvenido, " + data.username + "!", "exito");
+                    // Guardar username en sessionStorage para usarlo en otras páginas
+                    sessionStorage.setItem("at_logged", "1");
+                    sessionStorage.setItem("at_user", data.username);
+                    setTimeout(() => window.location.href = "usuarioLoggeado.html", 1200);
+                } else {
+                    mostrarMensaje(data.mensaje, "error");
+                }
+            } catch (err) {
+                mostrarMensaje("No se pudo conectar con el servidor.", "error");
+            }
         });
+
+        function mostrarMensaje(texto, tipo) {
+            const box = document.getElementById("mensaje");
+            box.textContent = texto;
+            box.style.display = "block";
+            box.style.background = tipo === "exito" ? "#1cf00c33" : "#ff444433";
+            box.style.color      = tipo === "exito" ? "#1cf00c"   : "#ff6666";
+            box.style.border     = `1px solid ${tipo === "exito" ? "#1cf00c" : "#ff4444"}`;
+        }
     </script>
 </body>
 

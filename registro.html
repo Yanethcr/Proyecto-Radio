@@ -33,29 +33,31 @@
                 <p>Únete a Audio Traveler y explora miles de estaciones de radio alrededor del mundo.</p>
             </div>
             <div class="form-container">
+                <!-- aparecen los mensajes de error/éxito -->
+                <div id="mensaje" style="display:none; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:14px;"></div>
                 <div class="form-grupo">
                     <label>Nombre</label>
-                    <input type="text" placeholder="Tu nombre">
+                    <input type="text" id="username" placeholder="Tu nombre de usuario">
                 </div>
-                <div class="form-grupo">
+                <!--div class="form-grupo">
                     <label>Apellidos</label>
-                    <input type="text" placeholder="Tus apellidos">
+                    <input type="text" id="correo" placeholder="Tus apellidos">
                 </div>
                 <div class="form-grupo">
                     <label>Fecha de nacimiento</label>
-                    <input type="date">
-                </div>
+                    <input type="date" id="cumple">
+                </div-->
                 <div class="form-grupo">
                     <label>Correo electrónico</label>
-                    <input type="email" placeholder="correo@ejemplo.com">
+                    <input type="email" id="correo" placeholder="correo@ejemplo.com">
                 </div>
                 <div class="form-grupo">
                     <label>Contraseña</label>
-                    <input type="password" placeholder="••••••••">
+                    <input type="password" id="contrasena" placeholder="••••••••">
                 </div>
                 <div class="form-grupo">
                     <label>Confirmar contraseña</label>
-                    <input type="password" placeholder="••••••••">
+                    <input type="password" id="confirmar" placeholder="••••••••">
                 </div>
                 <button class="btn" id="btnRegistro" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Crear cuenta</button>
                 <p class="form-link">¿Ya tienes cuenta? <a href="inicio.html">Inicia sesión</a></p>
@@ -82,28 +84,44 @@
     <script src="estrellas.js"></script>
 
     <script>
-        document.getElementById('btnRegistro').addEventListener('click', function() {
-            const nombre = document.querySelector('input[type="text"]').value.trim();
-            const email  = document.querySelector('input[type="email"]').value.trim();
-            const pass   = document.querySelectorAll('input[type="password"]')[0].value.trim();
-            const pass2  = document.querySelectorAll('input[type="password"]')[1].value.trim();
-            if (!nombre || !email || !pass || pass !== pass2) {
-                this.style.background = 'transparent';
-                this.style.color = '#ff4444';
-                this.style.borderColor = '#ff4444';
-                this.textContent = pass !== pass2 ? 'Las contraseñas no coinciden' : 'Completa todos los campos';
-                setTimeout(() => {
-                    this.style.background = '';
-                    this.style.color = '';
-                    this.style.borderColor = '';
-                    this.textContent = 'Crear cuenta';
-                }, 2500);
+        document.getElementById("btnRegistro").addEventListener("click", async () => {
+            const username   = document.getElementById("username").value.trim();
+            const correo     = document.getElementById("correo").value.trim();
+            const contrasena = document.getElementById("contrasena").value.trim();
+            const confirmar  = document.getElementById("confirmar").value.trim();
+ 
+            if (!username || !correo || !contrasena || !confirmar) {
+                mostrarMensaje("Por favor completa todos los campos.", "error");
                 return;
             }
-            sessionStorage.setItem('at_logged', '1');
-            sessionStorage.setItem('at_user', email);
-            window.location.href = 'usuarioLoggeado.html';
+ 
+            try {
+                const res  = await fetch("backend/registro.php", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ username, correo, contrasena, confirmar })
+                });
+                const data = await res.json();
+ 
+                if (data.ok) {
+                    mostrarMensaje(data.mensaje, "exito");
+                    setTimeout(() => window.location.href = "inicio.html", 1500);
+                } else {
+                    mostrarMensaje(data.mensaje, "error");
+                }
+            } catch (err) {
+                mostrarMensaje("No se pudo conectar con el servidor.", "error");
+            }
         });
+ 
+        function mostrarMensaje(texto, tipo) {
+            const box = document.getElementById("mensaje");
+            box.textContent = texto;
+            box.style.display = "block";
+            box.style.background = tipo === "exito" ? "#1cf00c33" : "#ff444433";
+            box.style.color      = tipo === "exito" ? "#1cf00c"   : "#ff6666";
+            box.style.border     = `1px solid ${tipo === "exito" ? "#1cf00c" : "#ff4444"}`;
+        }
     </script>
 </body>
 
