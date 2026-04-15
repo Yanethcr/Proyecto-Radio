@@ -20,11 +20,11 @@ if (empty($correo) || empty($contrasena)) {
 }
 
 // Buscar usuario 
-$stmt = $pdo->prepare("SELECT IdUsuario, Username, Contraseña FROM Usuarios WHERE Correo = ?");
+$stmt = $pdo->prepare("SELECT IdUsuario, Username, Contrasena FROM Usuarios WHERE Correo = ?");
 $stmt->execute([$correo]);
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if (!$usuario || !password_verify($contrasena, $usuario["Contraseña"])) {
+if (!$usuario || !password_verify($contrasena, $usuario["Contrasena"])) {
     echo json_encode(["ok" => false, "mensaje" => "Correo o contraseña incorrectos."]);
     exit;
 }

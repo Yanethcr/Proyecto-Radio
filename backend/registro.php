@@ -47,7 +47,7 @@ if ($stmt->rowCount() > 0) {
 // Insertar usuario 
 $hash = password_hash($contrasena, PASSWORD_BCRYPT);
 
-$insert = $pdo->prepare("INSERT INTO Usuarios (Username, Correo, Contraseña) VALUES (?, ?, ?)");
+$insert = $pdo->prepare("INSERT INTO Usuarios (Username, Correo, Contrasena) VALUES (?, ?, ?)");
 $insert->execute([$username, $correo, $hash]);
 
 echo json_encode(["ok" => true, "mensaje" => "Cuenta creada exitosamente."]);
