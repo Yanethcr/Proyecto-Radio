@@ -33,7 +33,7 @@ CREATE TABLE Usuarios (
     IdUsuario   INT PRIMARY KEY AUTO_INCREMENT,
     Username    VARCHAR(50)  NOT NULL UNIQUE,
     Correo      VARCHAR(100) NOT NULL UNIQUE,
-    Contraseña  VARCHAR(255) NOT NULL
+    Contrasena  VARCHAR(255) NOT NULL
 );
 
 -- Tabla: Estaciones
