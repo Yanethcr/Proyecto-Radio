@@ -56,8 +56,9 @@
     });
 
     audioActivo = url;
-    // Guardamos los datos para el botón del corazón
+    // Guardamos los datos local y globalmente
     estacionActual = { nombre, url, lugar };
+    window.estacionActualData = estacionActual; // <--- NUEVO: Para enviar la invitación
 
     document.querySelectorAll('.em-play').forEach(b => b.innerHTML = '<i class="fas fa-play"></i>');
     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -81,30 +82,155 @@
             body: JSON.stringify({
                 nombre: estacionActual.nombre,
                 streamUrl: estacionActual.url,
-                pais: estacionActual.lugar, // Se usa el nombre del país seleccionado
+                pais: estacionActual.lugar, 
                 ciudad: "Internacional",
                 genero: "Radio"
             })
         });
 
         const data = await res.json();
-
         if (data.ok) {
-            icono.style.color = '#1cf00c'; // Cambia a verde néon si se guardó
+            icono.style.color = '#1cf00c'; 
             alert("Guardado en favoritos");
         } else {
             alert(data.mensaje);
         }
     } catch (err) {
-        console.error("Error al guardar:", err);
         alert("No se pudo conectar con la base de datos.");
     }
   });
 
-  // Resto del código Three.js (sin cambios necesarios) ...
-  // [Se mantiene igual que tu versión original para conservar el globo y el movimiento]
-  
-  // Botón play/pause del reproductor inferior
+  // ── FUNCIONALIDAD DE LOS BOTONES LATERALES ──
+
+  // 1. Botón Privado
+  const btnPrivado = document.querySelector('.icono-btn[title="Privado"]');
+  if (btnPrivado) {
+      btnPrivado.addEventListener('click', function() {
+          const icono = this.querySelector('i');
+          if (icono.classList.contains('fa-lock')) {
+              icono.classList.replace('fa-lock', 'fa-lock-open');
+              this.style.color = 'var(--accent)';
+              this.style.borderColor = 'var(--accent)';
+              this.title = "Público";
+          } else {
+              icono.classList.replace('fa-lock-open', 'fa-lock');
+              this.style.color = 'var(--text-secondary)';
+              this.style.borderColor = 'var(--purple-border)';
+              this.title = "Privado";
+          }
+      });
+  }
+
+  // 2. Botón Compartir (Aviso de copiado)
+  const btnCompartir = document.querySelector('.icono-btn[title="Compartir"]');
+  if (btnCompartir) {
+      btnCompartir.addEventListener('click', function() {
+          if (!estacionActual) {
+              alert("Primero selecciona una emisora del globo para compartir.");
+              return;
+          }
+          const texto = `¡Estoy escuchando ${estacionActual.nombre} desde ${estacionActual.lugar} en Audio Traveler! 🎧🌍`;
+          navigator.clipboard.writeText(texto).then(() => {
+              alert("¡Texto copiado al portapapeles! 📋\nListo para pegar en WhatsApp o redes sociales.");
+              const iconoOriginal = this.innerHTML;
+              this.innerHTML = '<i class="fas fa-check"></i>';
+              this.style.color = 'var(--accent)';
+              setTimeout(() => {
+                  this.innerHTML = iconoOriginal;
+                  this.style.color = '';
+              }, 2000);
+          });
+      });
+  }
+
+  // 3. Botón Enviar (Abre el panel de amigos)
+  const btnEnviar = document.querySelector('.icono-btn[title="Enviar"]');
+  if (btnEnviar) {
+      btnEnviar.addEventListener('click', function(e) {
+          e.stopPropagation(); 
+          const panelAmigos = document.getElementById('panelAmigos');
+          if (panelAmigos) {
+              panelAmigos.classList.add('abierto');
+          }
+      });
+  }
+
+  // 4. Botón Aleatoria
+  const btnAleatoria = document.querySelector('.icono-btn[title="Aleatoria"]');
+  if (btnAleatoria) {
+      btnAleatoria.addEventListener('click', async function() {
+          const iconoOriginal = this.innerHTML;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+          this.style.color = 'var(--accent)';
+
+          try {
+              const res = await fetch(`${RADIO_API}/stations/search?limit=100&order=votes&reverse=true&hidebroken=true`);
+              const stations = await res.json();
+              
+              if (stations.length > 0) {
+                  const randIndex = Math.floor(Math.random() * stations.length);
+                  const st = stations[randIndex];
+                  reproducir(st.url_resolved || st.url, st.name, st.country || 'Internacional', null);
+              }
+          } catch (err) {
+              alert("Error al buscar estación aleatoria.");
+          }
+
+          this.innerHTML = iconoOriginal;
+          this.style.color = '';
+      });
+  }
+
+  // 5. Botón Crear Jam (Reproductor Inferior)
+  const btnCrearJam = document.querySelector('.icono-btn[title="Jam"]');
+  if (btnCrearJam) {
+      const enlacePadre = btnCrearJam.closest('a');
+      if (enlacePadre) enlacePadre.addEventListener('click', e => e.preventDefault());
+
+      btnCrearJam.addEventListener('click', async function() {
+          if (!estacionActual) {
+              alert("Selecciona una emisora del globo antes de iniciar la Jam.");
+              return;
+          }
+
+          const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+          let codigo = '';
+          for (let i = 0; i < 6; i++) codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+
+          const iconoOriginal = this.innerHTML;
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+          try {
+              const res = await fetch('backend/jam.php?accion=crear', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                      codigo: codigo,
+                      streamUrl: estacionActual.url,
+                      nombre: estacionActual.nombre,
+                      lugar: estacionActual.lugar
+                  })
+              });
+              const data = await res.json();
+              
+              if (data.ok) {
+                  sessionStorage.setItem('jam_estacion_nombre', estacionActual.nombre);
+                  sessionStorage.setItem('jam_estacion_url', estacionActual.url);
+                  sessionStorage.setItem('jam_estacion_lugar', estacionActual.lugar);
+                  sessionStorage.setItem('jam_codigo', codigo);
+                  window.location.href = 'jam.html';
+              } else {
+                  alert(data.mensaje);
+                  this.innerHTML = iconoOriginal;
+              }
+          } catch (err) {
+              alert("No se pudo crear la Jam.");
+              this.innerHTML = iconoOriginal;
+          }
+      });
+  }
+
+  // Resto del código Three.js...
   document.getElementById('rep-playpause')?.addEventListener('click', () => {
     if (!audioActivo) return;
     if (aud.paused) {
@@ -291,7 +417,26 @@
 
   panelCerrar.addEventListener('click', () => { panel.classList.remove('abierto'); aud.pause(); audioActivo = null; if (selectedCountry) { setMat(selectedCountry, MAT_DEFAULT); selectedCountry = null; } });
 
+  // ── VARIABLES DE ESTADO Y EVENTO PARA FIJAR EL GLOBO ──
   let isDragging = false, prev = { x: 0, y: 0 }, vel = { x: 0, y: 0 }, autoRotate = true, autoTimer = null;
+  let isLocked = false; 
+
+  const btnFijar = document.getElementById('btnFijarGlobo');
+  if (btnFijar) {
+      btnFijar.addEventListener('click', () => {
+          isLocked = !isLocked;
+          if (isLocked) {
+              btnFijar.innerHTML = '<i class="fas fa-lock"></i> Globo Fijo';
+              btnFijar.style.color = 'var(--accent)';
+              btnFijar.style.borderColor = 'var(--accent)';
+          } else {
+              btnFijar.innerHTML = '<i class="fas fa-unlock"></i> Rotación Activa';
+              btnFijar.style.color = 'var(--text-secondary)';
+              btnFijar.style.borderColor = 'var(--purple-border)';
+          }
+      });
+  }
+
   renderer.domElement.addEventListener('mousedown', e => { isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 }; renderer.domElement.style.cursor = 'grabbing'; });
   window.addEventListener('mousemove', e => { if (!isDragging) return; vel = { x: (e.clientY - prev.y) * 0.003, y: (e.clientX - prev.x) * 0.003 }; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; prev = { x: e.clientX, y: e.clientY }; });
   window.addEventListener('mouseup', () => { if (!isDragging) return; isDragging = false; renderer.domElement.style.cursor = 'grab'; autoTimer = setTimeout(() => autoRotate = true, 2500); });
@@ -300,8 +445,13 @@
 
   function animate() {
     requestAnimationFrame(animate);
-    if (autoRotate) globeGroup.rotation.y += 0.0015;
-    else if (!isDragging) { vel.x *= 0.93; vel.y *= 0.93; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; }
+    if (autoRotate && !isLocked) {
+        globeGroup.rotation.y += 0.0015;
+    } else if (!isDragging) { 
+        vel.x *= 0.93; vel.y *= 0.93; 
+        globeGroup.rotation.x += vel.x; 
+        globeGroup.rotation.y += vel.y; 
+    }
     renderer.render(scene, camera);
   }
   animate();

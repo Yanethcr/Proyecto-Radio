@@ -24,9 +24,11 @@
                 <a href="index.html"><h1>Audio Traveler</h1></a>
             </div>
             <div class="nav-links">
+                <span id="nombreUsuarioNav" style="color: var(--accent); font-weight: 600; font-family: var(--font-display); margin-right: 15px; letter-spacing: 0.5px;"></span>
+
                 <a href="favoritos.html" class="btn-nav">Favoritos</a>
                 <a href="historial.html" class="btn-nav">Historial</a>
-                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
+                <a href="#" class="btn-nav" id="btnNavAmigos">Amigos</a> <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
                 <div class="jam-dropdown-wrapper">
                     <button class="btn-jam-nav" id="btnAbrirJam">
                         <i class="fas fa-headphones"></i> Unirse a Jam
@@ -50,15 +52,18 @@
             <input type="text" placeholder="Buscar ciudad, país o estación">
         </div>
 
-        <!-- Globo 3D -->
         <section class="globo-seccion">
             <div id="globo-canvas"></div>
-            <p class="globo-hint">
-                <i class="fas fa-hand-pointer"></i> Haz clic en un país para ver sus emisoras
-            </p>
+            <div style="display: flex; gap: 20px; align-items: center; margin-top: -5px;">
+                <p class="globo-hint">
+                    <i class="fas fa-hand-pointer"></i> Haz clic en un país para ver sus emisoras
+                </p>
+                <button id="btnFijarGlobo" style="background: transparent; border: 1px solid var(--purple-border); color: var(--text-secondary); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-family: var(--font-body); font-size: 12px; transition: var(--transition);">
+                    <i class="fas fa-unlock"></i> Rotación Activa
+                </button>
+            </div>
         </section>
 
-        <!-- Panel lateral de emisoras -->
         <div class="panel-emisoras" id="panel-emisoras">
             <div class="panel-header">
                 <h3 id="panel-pais">Emisoras</h3>
@@ -102,7 +107,6 @@
             </div>
         </section>
 
-        <!-- Panel Historial -->
         <div class="panel-historial" id="panelHistorial">
             <div class="panel-header">
                 <h3>Historial</h3>
@@ -133,7 +137,6 @@
             </div>
         </div>
 
-        <!-- Panel Amigos -->
         <div class="panel-amigos" id="panelAmigos">
             <div class="panel-header">
                 <h3>Amigos</h3>
@@ -141,49 +144,33 @@
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
+            
             <div class="buscador-amigos">
                 <i class="fas fa-magnifying-glass"></i>
-                <input type="text" id="inputBuscarAmigo" placeholder="Buscar por usuario...">
+                <input type="text" id="inputBuscarAmigo" placeholder="Buscar nuevos amigos...">
             </div>
+            
+            <div id="resultadosBusquedaAmigos" style="display:none; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
+
+            <h4 style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">Mi Lista</h4>
+            
             <div class="lista-amigos" id="listaAmigos">
-                <div class="amigo-item">
-                    <div class="lista-info">
-                        <i class="fas fa-user-circle"></i>
-                        <div><h3>@karla_cruz</h3><p>En línea</p></div>
-                    </div>
-                    <div class="lista-acciones">
-                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
-                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
-                    </div>
                 </div>
-                <div class="amigo-item">
-                    <div class="lista-info">
-                        <i class="fas fa-user-circle"></i>
-                        <div><h3>@arturo_hm</h3><p>Escuchando radio</p></div>
-                    </div>
-                    <div class="lista-acciones">
-                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
-                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-                <div class="amigo-item">
-                    <div class="lista-info">
-                        <i class="fas fa-user-circle"></i>
-                        <div><h3>@gael_razo</h3><p>Desconectado</p></div>
-                    </div>
-                    <div class="lista-acciones">
-                        <button class="control-btn btn-invitar-jam"><i class="fas fa-headphones"></i></button>
-                        <button class="control-btn btn-eliminar"><i class="fas fa-trash"></i></button>
-                    </div>
-                </div>
-            </div>
         </div>
     </main>
 
-    <!-- Footer omitido: el reproductor fijo ocupa esa zona -->
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-caja">
+            <h3 class="modal-titulo" id="modalTitulo">Aviso</h3>
+            <p class="modal-texto" id="modalTexto">Mensaje</p>
+            <div class="modal-botones">
+                <button class="btn-modal btn-modal-cancel" id="modalBtnCancel" style="display:none;">Rechazar</button>
+                <button class="btn-modal btn-modal-ok" id="modalBtnOk">Aceptar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="estrellas.js"></script>
-    <!-- Three.js r128 + TopoJSON desde CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
     <script src="globo.js"></script>
@@ -196,6 +183,12 @@
         });
         document.getElementById('cerrarHistorial').addEventListener('click', () =>
             document.getElementById('panelHistorial').classList.remove('abierto'));
+
+        // Mostrar nombre de usuario en el Navbar
+        const usuarioLoggeado = sessionStorage.getItem('at_user');
+        if (usuarioLoggeado) {
+            document.getElementById('nombreUsuarioNav').textContent = '@' + usuarioLoggeado;
+        }
 
         // Dropdown Jam
         const btnAbrir  = document.getElementById('btnAbrirJam');
@@ -215,27 +208,282 @@
         inputCod.addEventListener('input', () => {
             btnEntrar.disabled = inputCod.value.trim().length !== 6;
         });
-        btnEntrar.addEventListener('click', () => {
-            if (inputCod.value.trim().length === 6) window.location.href = 'jam.html';
+
+        // Unirse a Jam (Invitado)
+        btnEntrar.addEventListener('click', async () => {
+            const codigo = inputCod.value.trim().toUpperCase();
+            if (codigo.length === 6) {
+                const iconoOriginal = btnEntrar.innerHTML;
+                btnEntrar.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+                try {
+                    const res = await fetch('backend/jam.php?accion=unirse', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ codigo })
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        sessionStorage.setItem('jam_estacion_nombre', data.estacion);
+                        sessionStorage.setItem('jam_estacion_url', data.stream_url);
+                        sessionStorage.setItem('jam_codigo', codigo);
+                        sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
+                        window.location.href = 'jam.html';
+                    } else {
+                        alert(data.mensaje);
+                        btnEntrar.innerHTML = iconoOriginal;
+                    }
+                } catch (err) {
+                    alert("Error al conectar con la Jam.");
+                    btnEntrar.innerHTML = iconoOriginal;
+                }
+            }
         });
 
+        // ── SISTEMA DE AMIGOS CON BASE DE DATOS ──
+        const inputBuscarAmigo = document.getElementById('inputBuscarAmigo');
+        const cajaResultados = document.getElementById('resultadosBusquedaAmigos');
+        const contenedorAmigos = document.getElementById('listaAmigos');
+
+        document.getElementById('panelAmigos').addEventListener('transitionend', function(e) {
+            if (this.classList.contains('abierto') && e.propertyName === 'right') {
+                cargarAmigos();
+            }
+        });
+
+        document.getElementById('cerrarAmigos').addEventListener('click', () => {
+            document.getElementById('panelAmigos').classList.remove('abierto');
+        });
+
+        // Abrir panel desde la Navbar
+        document.getElementById('btnNavAmigos').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); 
+            document.getElementById('panelAmigos').classList.add('abierto');
+        });
+
+        // EVITAR QUE EL MODAL CIERRE EL PANEL
+        document.addEventListener('click', function(e) {
+            const panelAmigos = document.getElementById('panelAmigos');
+            const btnEnviar = document.querySelector('.icono-btn[title="Enviar"]');
+            const btnNavAmigos = document.getElementById('btnNavAmigos');
+            const modalCustom = document.getElementById('customModal');
+
+            if (panelAmigos && panelAmigos.classList.contains('abierto')) {
+                // Si el clic NO fue dentro de ninguno de estos elementos, ciérralo
+                if (!panelAmigos.contains(e.target) && 
+                    (!btnEnviar || !btnEnviar.contains(e.target)) && 
+                    (!btnNavAmigos || !btnNavAmigos.contains(e.target)) &&
+                    (!modalCustom || !modalCustom.contains(e.target))) {
+                    panelAmigos.classList.remove('abierto');
+                }
+            }
+        });
+
+        async function cargarAmigos() {
+            contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px;">Cargando amigos...</p>';
+            try {
+                const res = await fetch('backend/amigos.php?accion=listar');
+                const data = await res.json();
+                
+                contenedorAmigos.innerHTML = '';
+                if (data.amigos.length === 0) {
+                    contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:13px;">No tienes amigos agregados aún.</p>';
+                    return;
+                }
+
+                data.amigos.forEach(amigo => {
+                    const item = document.createElement('div');
+                    item.className = 'amigo-item';
+                    item.innerHTML = `
+                        <div class="lista-info">
+                            <i class="fas fa-user-circle"></i>
+                            <div>
+                                <h3>@${amigo.AmigoNombre}</h3>
+                                <p>Amigo</p>
+                            </div>
+                        </div>
+                        <div class="lista-acciones">
+                            <button class="control-btn btn-invitar-jam" data-nombre="${amigo.AmigoNombre}" title="Enviar Emisora / Invitar"><i class="fas fa-headphones"></i></button>
+                            <button class="control-btn btn-eliminar-amigo" data-id="${amigo.IdAmigos}" title="Eliminar"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    contenedorAmigos.appendChild(item);
+                });
+
+                // ENVIAR EMISORA DIRECTAMENTE AL AMIGO
+                document.querySelectorAll('.btn-invitar-jam').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const amigoNombre = this.dataset.nombre;
+                        
+                        if (!window.estacionActualData) {
+                            alert("Primero selecciona una emisora del globo terráqueo para enviarla.");
+                            return;
+                        }
+
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                        
+                        const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                        let codigo = '';
+                        for (let i = 0; i < 6; i++) codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
+
+                        try {
+                            // Crear la Jam en la BD
+                            await fetch('backend/jam.php?accion=crear', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    codigo: codigo,
+                                    streamUrl: window.estacionActualData.url,
+                                    nombre: window.estacionActualData.nombre,
+                                    lugar: window.estacionActualData.lugar
+                                })
+                            });
+                            
+                            // Enviar la invitación al amigo
+                            await fetch('backend/jam.php?accion=invitar', {
+                                method: 'POST',
+                                body: JSON.stringify({ codigo: codigo, amigo: amigoNombre })
+                            });
+
+                            alert(`¡Emisora enviada a @${amigoNombre}! 🚀\n\nSi acepta la invitación, puedes unirte a escuchar con él desde el menú superior con el código:\n\n${codigo}`);
+                        } catch (err) {
+                            alert("Error al enviar la invitación.");
+                        }
+                        
+                        this.innerHTML = '<i class="fas fa-headphones"></i>';
+                    });
+                });
+
+                // Botón de eliminar
+                document.querySelectorAll('.btn-eliminar-amigo').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        if(confirm('¿Seguro que quieres eliminar a este amigo?')) {
+                            await fetch('backend/amigos.php?accion=eliminar', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ idAmigos: this.dataset.id })
+                            });
+                            cargarAmigos();
+                        }
+                    });
+                });
+            } catch (err) {
+                contenedorAmigos.innerHTML = '<p style="color:#ff4444; font-size:12px;">Error de conexión.</p>';
+            }
+        }
+
         // Buscar amigos
-        document.getElementById('inputBuscarAmigo').addEventListener('input', function() {
-            const t = this.value.toLowerCase();
-            document.querySelectorAll('.amigo-item').forEach(item => {
-                item.style.display =
-                    item.querySelector('h3').textContent.toLowerCase().includes(t) ? 'flex' : 'none';
-            });
+        inputBuscarAmigo.addEventListener('input', async function() {
+            const q = this.value.trim().replace('@', '');
+            if (q.length < 2) {
+                cajaResultados.style.display = 'none';
+                return;
+            }
+            
+            const res = await fetch(`backend/amigos.php?accion=buscar&q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            
+            cajaResultados.innerHTML = '';
+            cajaResultados.style.display = 'flex';
+            
+            if (data.resultados.length > 0) {
+                data.resultados.forEach(u => {
+                    cajaResultados.innerHTML += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.06); padding:10px 14px; border-radius:10px; border:1px solid var(--purple-border);">
+                            <span style="color:var(--text-primary); font-size:13px; font-weight:600;">@${u.Username}</span>
+                            <button class="btn-agregar-amigo" data-id="${u.IdUsuario}" style="background:var(--accent); color:var(--bg-dark); border:none; padding:4px 12px; border-radius:12px; cursor:pointer; font-size:11px; font-weight:bold; transition:var(--transition);">Agregar</button>
+                        </div>
+                    `;
+                });
+
+                document.querySelectorAll('.btn-agregar-amigo').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        await fetch('backend/amigos.php?accion=agregar', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ idAmigo: this.dataset.id })
+                        });
+                        inputBuscarAmigo.value = '';
+                        cajaResultados.style.display = 'none';
+                        cargarAmigos(); 
+                    });
+                });
+            } else {
+                cajaResultados.innerHTML = '<p style="color:var(--text-muted); font-size:12px; text-align:center;">No se encontraron usuarios.</p>';
+            }
         });
 
         // Volumen
         document.getElementById('rep-volumen').addEventListener('input', function() {
             if (window._audGlobo) window._audGlobo.volume = this.value / 100;
         });
-    </script>
 
-    <script>
-        // Cerrar sesión — limpiar sessionStorage
+        // ── LÓGICA DEL POP-UP PERSONALIZADO ──
+        const modal = document.getElementById('customModal');
+        const modalTit = document.getElementById('modalTitulo');
+        const modalTxt = document.getElementById('modalTexto');
+        const btnOk = document.getElementById('modalBtnOk');
+        const btnCancel = document.getElementById('modalBtnCancel');
+
+        // Reescribir window.alert
+        window.alert = function(mensaje) {
+            modalTit.textContent = "Audio Traveler";
+            modalTxt.textContent = mensaje;
+            btnCancel.style.display = "none";
+            btnOk.textContent = "Entendido";
+            modal.classList.add('activo');
+            btnOk.onclick = () => modal.classList.remove('activo');
+        };
+
+        // Custom confirm para la invitación
+        function mostrarConfirmacion(titulo, mensaje, onOk, onCancel) {
+            modalTit.textContent = titulo;
+            modalTxt.textContent = mensaje;
+            btnCancel.style.display = "block";
+            btnOk.textContent = "¡Unirme!";
+            modal.classList.add('activo');
+
+            btnOk.onclick = () => { modal.classList.remove('activo'); onOk(); };
+            btnCancel.onclick = () => { modal.classList.remove('activo'); if(onCancel) onCancel(); };
+        }
+
+        // ── BUSCADOR DE INVITACIONES (POLLING) ──
+        setInterval(async () => {
+            try {
+                const res = await fetch('backend/jam.php?accion=revisar');
+                const data = await res.json();
+                
+                if (data.ok && data.invitacion) {
+                    const inv = data.invitacion;
+                    mostrarConfirmacion(
+                        "¡Te invitaron a escuchar juntos! 🎧",
+                        `@${inv.Remitente} te envió la emisora ${inv.Estacion}. ¿Quieres unirte a su sala?`,
+                        async () => {
+                            await fetch('backend/jam.php?accion=responder', {
+                                method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Aceptada' })
+                            });
+                            const r = await fetch('backend/jam.php?accion=unirse', {
+                                method: 'POST', body: JSON.stringify({ codigo: inv.Codigo })
+                            });
+                            const d = await r.json();
+                            if (d.ok) {
+                                sessionStorage.setItem('jam_estacion_nombre', d.estacion);
+                                sessionStorage.setItem('jam_estacion_url', d.stream_url);
+                                sessionStorage.setItem('jam_codigo', inv.Codigo);
+                                sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
+                                window.location.href = 'jam.html';
+                            }
+                        },
+                        async () => {
+                            await fetch('backend/jam.php?accion=responder', {
+                                method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Rechazada' })
+                            });
+                        }
+                    );
+                }
+            } catch(e) {} 
+        }, 5000);
+
+        // Cerrar sesión
         document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
             a.addEventListener('click', function(e) {
                 e.preventDefault();

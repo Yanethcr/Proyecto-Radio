@@ -1553,3 +1553,45 @@ main {
   .iconos-lateral { right: 10px; }
   .footer-team-names span { font-size: 11px; padding: 2px 8px; }
 }
+/* ─────────────────────────────────────────────
+   MODAL (Pop-up Personalizado)
+   ───────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 9999; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.modal-overlay.activo { opacity: 1; pointer-events: all; }
+.modal-caja {
+    background: var(--bg-glass);
+    border: 1px solid var(--accent);
+    padding: 24px 30px;
+    border-radius: var(--radius-md);
+    text-align: center;
+    max-width: 340px; width: 100%;
+    box-shadow: 0 0 30px rgba(28, 240, 12, 0.15), 0 10px 30px rgba(0,0,0,0.5);
+    transform: translateY(-20px) scale(0.95);
+    transition: transform 0.3s ease;
+}
+.modal-overlay.activo .modal-caja { transform: translateY(0) scale(1); }
+.modal-titulo {
+    font-family: var(--font-display); color: var(--text-primary);
+    font-size: 20px; margin-bottom: 12px; font-weight: 700;
+}
+.modal-texto {
+    color: var(--text-secondary); font-size: 14px;
+    margin-bottom: 24px; line-height: 1.5;
+}
+.modal-botones { display: flex; gap: 12px; justify-content: center; }
+.btn-modal {
+    padding: 10px 20px; border-radius: var(--radius-pill); cursor: pointer;
+    font-weight: bold; font-family: var(--font-display); font-size: 13px;
+    transition: var(--transition); border: none; letter-spacing: 0.5px;
+}
+.btn-modal-ok { background: var(--accent); color: var(--bg-dark); }
+.btn-modal-ok:hover { box-shadow: var(--shadow-glow); }
+.btn-modal-cancel { background: transparent; border: 1px solid rgba(255,100,100,0.6); color: #ff6666; }
+.btn-modal-cancel:hover { background: rgba(255,68,68,0.1); border-color: #ff4444; }
