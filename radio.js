@@ -1,7 +1,9 @@
 const aud = new Audio();
 aud.crossOrigin = 'anonymous';
 
-// Carga las estaciones
+
+window.estacionActualData = null;
+
 async function cargar() {
     try {
         const res  = await fetch('https://de1.api.radio-browser.info/json/stations?hidebroken=true&order=votes&reverse=true');
@@ -13,7 +15,6 @@ async function cargar() {
     }
 }
 
-// Buscar estaciones por nombre
 async function buscar(nombre) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/stations/byname/${encodeURIComponent(nombre)}?hidebroken=true&order=votes&reverse=true`);
@@ -25,7 +26,6 @@ async function buscar(nombre) {
     }
 }
 
-// Estaciones por país
 async function porPais(pais) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/stations/bycountry/${encodeURIComponent(pais)}?hidebroken=true&order=votes&reverse=true`);
@@ -37,7 +37,6 @@ async function porPais(pais) {
     }
 }
 
-// Estaciones por género
 async function porGenero(genero) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/stations/bytag/${encodeURIComponent(genero)}?hidebroken=true&order=votes&reverse=true`);
@@ -49,7 +48,6 @@ async function porGenero(genero) {
     }
 }
 
-// Estaciones por idioma
 async function porIdioma(idioma) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/stations/bylanguage/${encodeURIComponent(idioma)}?hidebroken=true&order=votes&reverse=true`);
@@ -61,7 +59,6 @@ async function porIdioma(idioma) {
     }
 }
 
-// Estaciones por bitrate mínimo
 async function porBitrate(min) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/stations?hidebroken=true&order=votes&reverse=true&bitrateMin=${min}`);
@@ -73,7 +70,6 @@ async function porBitrate(min) {
     }
 }
 
-// Registra un click en la estación
 async function click(uuid) {
     try {
         const res  = await fetch(`https://de1.api.radio-browser.info/json/url/${uuid}`);
@@ -85,28 +81,69 @@ async function click(uuid) {
     }
 }
 
-function reproducir(url) {
+
+function reproducir(url, nombre, lugar) {
     if (!url) {
         console.log('Esta estación no tiene stream disponible');
         return false;
     }
+
+ 
+    window.estacionActualData = { url, nombre: nombre || '', lugar: lugar || '' };
+
+ 
+    if (window._audGlobo) {
+        window._audGlobo.src  = url;
+        window._audGlobo.play().catch(() => {});
+    }
+
     aud.src = url;
     return aud.play().catch(e => {
+      
+        const elNombre = document.getElementById('rep-nombre');
+        if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
         console.log('No se pudo conectar:', e);
         return false;
     });
 }
 
+
+function pausar() {
+    if (window._audGlobo && !window._audGlobo.paused) {
+        window._audGlobo.pause();
+    }
+    aud.pause();
+
+    const btn = document.getElementById('rep-playpause');
+    if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
+}
+
+// ERROR 5 — reanudar
+function reanudar() {
+    if (window._audGlobo && window._audGlobo.src) {
+        window._audGlobo.play().catch(() => {});
+    }
+    if (aud.src) aud.play().catch(() => {});
+
+    const btn = document.getElementById('rep-playpause');
+    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
+}
+
 function detener() {
+    if (window._audGlobo) {
+        window._audGlobo.pause();
+        window._audGlobo.src = '';
+    }
     aud.pause();
     aud.currentTime = 0;
+    window.estacionActualData = null;
 }
 
 function volumen(val) {
+    if (window._audGlobo) window._audGlobo.volume = val / 100;
     aud.volume = val / 100;
 }
 
-// login.php
 async function iniciarSesion(correo, contrasena) {
     try {
         const res  = await fetch('backend/login.php', {
@@ -122,7 +159,6 @@ async function iniciarSesion(correo, contrasena) {
     }
 }
 
-// registro.php
 async function registrarse(username, correo, contrasena, confirmar) {
     try {
         const res  = await fetch('backend/registro.php', {
@@ -138,23 +174,25 @@ async function registrarse(username, correo, contrasena, confirmar) {
     }
 }
 
-// favoritos.php 
+
 async function guardarFav(estacion) {
+    const datos = estacion || window.estacionActualData;
+
+    if (!datos) {
+        console.log('No hay estación activa para guardar en favoritos');
+        return { ok: false, mensaje: 'Primero selecciona una estación' };
+    }
+
     try {
         const res  = await fetch('backend/favoritos.php?accion=guardar', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                nombre:      estacion.name,
-                streamUrl:   estacion.url_resolved || estacion.url,
-                genero:      estacion.tags ? estacion.tags.split(',')[0].trim() : 'Radio',
-                descripcion: estacion.name || '',
-                vvidApi:     estacion.stationuuid || '',
-                ciudad:      estacion.state        || 'Desconocida',
-                latitud:     estacion.geo_lat       || null,
-                longitud:    estacion.geo_long      || null,
-                pais:        estacion.country       || 'Desconocido',
-                codigoISO:   estacion.countrycode   || ''
+                nombre:    datos.name    || datos.nombre    || '',
+                streamUrl: datos.url_resolved || datos.url  || '',
+                genero:    datos.tags ? datos.tags.split(',')[0].trim() : 'Radio',
+                ciudad:    datos.state   || datos.lugar     || 'Desconocida',
+                pais:      datos.country || 'Desconocido'
             })
         });
         const data = await res.json();
@@ -192,7 +230,6 @@ async function eliminarFav(idFavorito) {
     }
 }
 
-// Registra cuando el usuario empieza a escuchar — historial.php
 async function registrarHist(idEstacion) {
     try {
         const res  = await fetch('backend/historial.php?accion=registrar', {
@@ -201,14 +238,13 @@ async function registrarHist(idEstacion) {
             body: JSON.stringify({ idEstacion })
         });
         const data = await res.json();
-        return data; // Devuelve { ok, idHistorial }
+        return data;
     } catch(e) {
         console.log('Error al registrar historial:', e);
         return { ok: false, mensaje: 'Error de conexión' };
     }
 }
 
-// Guarda Duracion
 async function guardarDur(idHistorial, duracionSegundos) {
     try {
         const res  = await fetch('backend/historial.php?accion=duracion', {
@@ -236,7 +272,6 @@ async function cargarHist() {
     }
 }
 
-// Busca usuarios por username
 async function buscarAmigo(username) {
     try {
         const res  = await fetch(`backend/amigos.php?accion=buscar&username=${encodeURIComponent(username)}`);
@@ -248,7 +283,6 @@ async function buscarAmigo(username) {
     }
 }
 
-// Envía solicitud 
 async function enviarSol(idUsuarioAmigo) {
     try {
         const res  = await fetch('backend/amigos.php?accion=enviar', {
@@ -264,7 +298,6 @@ async function enviarSol(idUsuarioAmigo) {
     }
 }
 
-// Responde solicitud 
 async function responderSol(idAmigos, estado) {
     try {
         const res  = await fetch('backend/amigos.php?accion=responder', {
@@ -292,23 +325,21 @@ async function cargarAmigos() {
     }
 }
 
-// Crea sala Jam 
-async function crearJam(idEstacion) {
+async function crearJam(codigo, streamUrl, nombre) {
     try {
         const res  = await fetch('backend/jam.php?accion=crear', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ idEstacion })
+            body: JSON.stringify({ codigo, streamUrl, nombre })
         });
         const data = await res.json();
-        return data; // Devuelve { ok, codigo, idJam }
+        return data;
     } catch(e) {
         console.log('Error al crear jam:', e);
         return { ok: false, mensaje: 'Error de conexión' };
     }
 }
 
-// Une al usuario al Jam 
 async function unirseJam(codigo) {
     try {
         const res  = await fetch('backend/jam.php?accion=unirse', {
@@ -317,14 +348,13 @@ async function unirseJam(codigo) {
             body: JSON.stringify({ codigo })
         });
         const data = await res.json();
-        return data; 
+        return data;
     } catch(e) {
         console.log('Error al unirse al jam:', e);
         return { ok: false, mensaje: 'Error de conexión' };
     }
 }
 
-// Carga usuarios de la sala 
 async function usuariosJam(idJam) {
     try {
         const res  = await fetch(`backend/jam.php?accion=usuarios&idJam=${idJam}`);
@@ -337,7 +367,6 @@ async function usuariosJam(idJam) {
     }
 }
 
-// Termina la sala
 async function terminarJam(idJam) {
     try {
         const res  = await fetch('backend/jam.php?accion=terminar', {
