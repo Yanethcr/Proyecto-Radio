@@ -1,7 +1,7 @@
 const aud = new Audio();
 aud.crossOrigin = 'anonymous';
 
-
+// Estación actualmente reproduciéndose — accesible para favoritos
 window.estacionActualData = null;
 
 async function cargar() {
@@ -81,59 +81,38 @@ async function click(uuid) {
     }
 }
 
-
 function reproducir(url, nombre, lugar) {
     if (!url) {
         console.log('Esta estación no tiene stream disponible');
         return false;
     }
 
- 
+    // Guarda la estación actual para favoritos
     window.estacionActualData = { url, nombre: nombre || '', lugar: lugar || '' };
 
- 
-    if (window._audGlobo) {
-        window._audGlobo.src  = url;
-        window._audGlobo.play().catch(() => {});
-    }
-
     aud.src = url;
-    return aud.play().catch(e => {
-      
-        const elNombre = document.getElementById('rep-nombre');
-        if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
-        console.log('No se pudo conectar:', e);
-        return false;
-    });
-}
 
+    const promesa = aud.play();
 
-function pausar() {
-    if (window._audGlobo && !window._audGlobo.paused) {
-        window._audGlobo.pause();
+    // aud.play() puede devolver undefined en algunos navegadores
+    if (promesa !== undefined) {
+        promesa.catch(e => {
+            const elNombre = document.getElementById('rep-nombre');
+            if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
+            console.log('No se pudo conectar:', e);
+        });
+    } else {
+        // Fallback para navegadores que no devuelven Promise
+        aud.onerror = () => {
+            const elNombre = document.getElementById('rep-nombre');
+            if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
+        };
     }
-    aud.pause();
 
-    const btn = document.getElementById('rep-playpause');
-    if (btn) btn.innerHTML = '<i class="fas fa-play"></i>';
-}
-
-// ERROR 5 — reanudar
-function reanudar() {
-    if (window._audGlobo && window._audGlobo.src) {
-        window._audGlobo.play().catch(() => {});
-    }
-    if (aud.src) aud.play().catch(() => {});
-
-    const btn = document.getElementById('rep-playpause');
-    if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
+    return promesa || true;
 }
 
 function detener() {
-    if (window._audGlobo) {
-        window._audGlobo.pause();
-        window._audGlobo.src = '';
-    }
     aud.pause();
     aud.currentTime = 0;
     window.estacionActualData = null;
@@ -173,7 +152,6 @@ async function registrarse(username, correo, contrasena, confirmar) {
         return { ok: false, mensaje: 'Error de conexión' };
     }
 }
-
 
 async function guardarFav(estacion) {
     const datos = estacion || window.estacionActualData;
