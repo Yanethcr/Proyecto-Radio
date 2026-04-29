@@ -98,14 +98,14 @@ function reproducir(url, nombre, lugar) {
     if (promesa !== undefined) {
         promesa.catch(e => {
             const elNombre = document.getElementById('rep-nombre');
-            if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
+            if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
             console.log('No se pudo conectar:', e);
         });
     } else {
         // Fallback para navegadores que no devuelven Promise
         aud.onerror = () => {
             const elNombre = document.getElementById('rep-nombre');
-            if (elNombre) elNombre.textContent = '⚠️ Esta estación no está disponible';
+            if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
         };
     }
 
