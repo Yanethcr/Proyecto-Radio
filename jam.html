@@ -3,7 +3,6 @@
 
 <head>
     <script>
-        // Guard de sesión — redirige si no está loggeado
         if (!sessionStorage.getItem('at_logged')) {
             window.location.replace('inicio.html');
         }
@@ -38,9 +37,7 @@
 
         <div class="jam-botones">
             <button class="btn-jam" id="btnInvitar">Invitar</button>
-            <a href="usuarioLoggeado.html">
-                <button class="btn-jam btn-terminar">Terminar</button>
-            </a>
+            <button class="btn-jam btn-terminar">Terminar</button>
         </div>
 
         <div class="jam-reproductor">
@@ -56,7 +53,6 @@
             </div>
         </div>
 
-        <!-- Contenedor de Usuarios Conectados -->
         <div class="jam-usuarios-container">
             <h4><i class="fas fa-users"></i> Escuchando ahora en esta sala</h4>
             <div id="listaUsuariosJam" class="jam-usuarios-lista">
@@ -130,26 +126,25 @@
     <script src="estrellas.js"></script>
 
     <script>
-        // 1. CARGAR DATOS DE LA JAM
         const jamNombre = sessionStorage.getItem('jam_estacion_nombre');
-        const jamUrl    = sessionStorage.getItem('jam_estacion_url');
+        const jamUrlOriginal = sessionStorage.getItem('jam_estacion_url');
         const jamCodigo = sessionStorage.getItem('jam_codigo');
         const jamLugar  = sessionStorage.getItem('jam_estacion_lugar') || "Radio Compartida";
+
+        const jamUrl = (location.protocol === 'https:' && jamUrlOriginal && jamUrlOriginal.startsWith('http://')) 
+                        ? jamUrlOriginal.replace('http://', 'https://') 
+                        : jamUrlOriginal;
 
         if (!jamUrl) {
             alert("No te has unido a ninguna Jam válida.");
             window.location.replace('usuarioLoggeado.html');
         }
 
-        // 2. ACTUALIZAR INTERFAZ
         document.querySelector('.jam-estacion').textContent = jamNombre;
         document.querySelector('.jam-lugar').textContent    = jamLugar;
         document.getElementById('codigoSala').textContent   = jamCodigo;
 
-        // 3. REPRODUCIR AUDIO AUTOMÁTICAMENTE Y SINCRONIZAR
         const audJam = new Audio(jamUrl);
-        audJam.crossOrigin = 'anonymous';
-        
         const btnPlayPause = document.querySelector('.jam-controles .control-btn:nth-child(2)');
         
         audJam.play().then(() => {
@@ -159,10 +154,8 @@
             console.log("Autoplay bloqueado por el navegador.");
         });
 
-        // TRUCO DE SINCRONIZACIÓN
         btnPlayPause.addEventListener('click', () => {
             if (audJam.paused) {
-                // Recargamos la fuente original para saltar al tiempo real (en vivo)
                 audJam.src = jamUrl;
                 audJam.play();
                 btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
@@ -172,14 +165,43 @@
             }
         });
 
-        // Al salir de la Jam con el botón Terminar (aplica a Host e Invitado)
-        document.querySelector('.btn-terminar')?.addEventListener('click', () => {
+        // ==========================================
+        // LA SOLUCIÓN: LÓGICA DE SALIDA SEGURA
+        // ==========================================
+        document.querySelector('.btn-terminar')?.addEventListener('click', async () => {
             audJam.pause();
-            // Salir explícito — funciona para cualquier rol
-            if (codigoActual) {
-                navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
+            
+            const rolActualBtn = sessionStorage.getItem('jam_rol');
+            const idJamActual = sessionStorage.getItem('jam_id');
+            const codigoActualBtn = sessionStorage.getItem('jam_codigo');
+            
+            // Animación de carga para que el usuario no dé doble clic
+            const btn = document.querySelector('.btn-terminar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                if (rolActualBtn === 'Host' && idJamActual) {
+                    // El Host lanza la orden para cerrar y marcar la FechaFin en la BD
+                    await fetch('backend/jam.php?accion=terminar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idJam: idJamActual })
+                    });
+                } else if (codigoActualBtn) {
+                    // El Invitado solo abandona la sala
+                    await fetch(`backend/jam.php?accion=salir&codigo=${codigoActualBtn}`);
+                }
+            } catch (error) {
+                console.error("Error al salir/terminar la sala:", error);
             }
+            
+            // Limpiamos los rastros y redirigimos de forma segura
             sessionStorage.removeItem('jam_rol');
+            sessionStorage.removeItem('jam_id');
+            sessionStorage.removeItem('jam_codigo');
+            
+            window.location.href = 'usuarioLoggeado.html';
         });
 
         async function actualizarUsuariosJam() {
@@ -204,15 +226,11 @@
                         });
                     }
                 }
-            } catch(e) {
-                console.error("Error en sincronización de usuarios.");
-            }
+            } catch(e) {}
         }
-        // Polling cada 4 segundos
         setInterval(actualizarUsuariosJam, 4000);
-        actualizarUsuariosJam(); // Ejecución inmediata al cargar
+        actualizarUsuariosJam(); 
 
-        // HEARTBEAT — avisa al servidor que seguimos en la sala cada 10s
         const codigoActual = sessionStorage.getItem('jam_codigo');
         const rolActual = sessionStorage.getItem('jam_rol') ?? 'Invitado';
 
@@ -224,8 +242,6 @@
         enviarHeartbeat();
         setInterval(enviarHeartbeat, 10000);
 
-        // SALIR — solo elimina al usuario si es Invitado
-        // El Host permanece hasta que presione "Terminar" explícitamente
         function salirDeJam() {
             if (codigoActual && rolActual === 'Invitado') {
                 navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
@@ -234,24 +250,20 @@
         window.addEventListener('beforeunload', salirDeJam);
         window.addEventListener('pagehide', salirDeJam);
 
-        // 5. LÓGICA DEL PANEL DE AMIGOS
         const panelAmigos = document.getElementById('panelAmigos');
         const btnInvitar = document.getElementById('btnInvitar');
         const contenedorAmigos = document.getElementById('listaAmigos');
 
-        // Abrir panel
         btnInvitar.addEventListener('click', function (e) {
             e.stopPropagation(); 
             panelAmigos.classList.add('abierto');
             cargarAmigos(); 
         });
 
-        // Cerrar panel con la X
         document.getElementById('cerrarAmigos').addEventListener('click', function () {
             panelAmigos.classList.remove('abierto');
         });
 
-        // Cerrar al dar clic fuera
         document.addEventListener('click', function(e) {
             if (panelAmigos.classList.contains('abierto')) {
                 if (!panelAmigos.contains(e.target) && !btnInvitar.contains(e.target)) {
@@ -260,7 +272,6 @@
             }
         });
 
-        // Copiar código principal
         document.getElementById('btnCopiar').addEventListener('click', function () {
             const codigo = document.getElementById('codigoSala').textContent;
             navigator.clipboard.writeText(codigo);
@@ -268,7 +279,6 @@
             setTimeout(() => this.innerHTML = '<i class="fas fa-copy"></i>', 2000);
         });
 
-        // Cargar amigos desde la BD
         async function cargarAmigos() {
             contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px;">Cargando amigos...</p>';
             try {
@@ -299,7 +309,6 @@
                     contenedorAmigos.appendChild(item);
                 });
 
-                // Reescribir alert para diseño custom
                 window.alert = function(mensaje) {
                     document.getElementById('modalTitulo').textContent = "Audio Traveler";
                     document.getElementById('modalTexto').textContent = mensaje;
@@ -307,7 +316,6 @@
                     document.getElementById('modalBtnOk').onclick = () => document.getElementById('customModal').classList.remove('activo');
                 };
 
-                // Funcionalidad real de enviar invitación
                 document.querySelectorAll('.btn-mandar-codigo').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const amigoNombre = this.dataset.nombre;
@@ -334,7 +342,6 @@
             }
         }
 
-        // Filtro local de amigos
         document.getElementById('inputBuscarAmigo').addEventListener('input', function () {
             const termino = this.value.toLowerCase();
             document.querySelectorAll('.amigo-item').forEach(item => {
@@ -345,7 +352,6 @@
     </script>
 
     <script>
-        // Cerrar sesión
         document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
             a.addEventListener('click', function(e) {
                 e.preventDefault();

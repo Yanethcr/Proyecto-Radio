@@ -75,7 +75,6 @@
     <script src="estrellas.js"></script>
     <script>
         const aud = new Audio();
-        aud.crossOrigin = 'anonymous';
         let audioActivo = null;
 
         // Iniciar carga al abrir
@@ -102,7 +101,6 @@
                 data.favoritos.forEach(fav => {
                     const item = document.createElement('div');
                     item.className = 'lista-item';
-                    // Blindaje: Inyectamos todos los datos directo en el botón como 'data-' attributes
                     item.innerHTML = `
                         <div class="lista-info">
                             <i class="fas fa-radio"></i>
@@ -134,13 +132,15 @@
 
         // 2. ASIGNAR EVENTOS A BOTONES DINÁMICOS
         function asignarEventos() {
-            // Botones de reproducción
             document.querySelectorAll('.btn-play-fav').forEach(btn => {
-                // Función asíncrona para poder usar await
                 btn.addEventListener('click', async function() {
-                    const url = this.dataset.url;
+                    const urlOriginal = this.dataset.url;
+                    const url = (location.protocol === 'https:' && urlOriginal && urlOriginal.startsWith('http://')) 
+                                ? urlOriginal.replace('http://', 'https://') 
+                                : urlOriginal;
+                                
                     const nombre = this.dataset.nombre;
-                    const lugarTexto = this.dataset.lugar; // Lectura 100% segura
+                    const lugarTexto = this.dataset.lugar;
 
                     if (audioActivo === url) {
                         if (aud.paused) {
@@ -155,12 +155,10 @@
                         return;
                     }
 
-                    // Detener anterior y actualizar iconos
                     document.querySelectorAll('.btn-play-fav').forEach(b => b.innerHTML = '<i class="fas fa-play"></i>');
                     aud.src = url;
                     this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
-                    // 🚨 LLAMADA SEGURA AL HISTORIAL: Esperamos a que la petición se envíe
                     try {
                         const resHist = await fetch('backend/historial.php?accion=registrar', {
                             method: 'POST',
@@ -172,12 +170,11 @@
                             })
                         });
                         const dataHist = await resHist.json();
-                        console.log("Respuesta del historial:", dataHist); // Para que revises en la consola si marca "ok: true"
+                        console.log("Respuesta del historial:", dataHist);
                     } catch(err) {
                         console.error("Error enviando al historial:", err);
                     }
 
-                    // Reproducimos la estación
                     aud.play().then(() => {
                         audioActivo = url;
                         this.innerHTML = '<i class="fas fa-pause"></i>';
@@ -191,7 +188,6 @@
                 });
             });
 
-            // Botones de eliminar
             document.querySelectorAll('.btn-eliminar-real').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const id = this.dataset.id;
@@ -273,7 +269,6 @@
     </style>
 
     <script>
-        // Cerrar sesión
         document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
             a.addEventListener('click', function(e) {
                 e.preventDefault();

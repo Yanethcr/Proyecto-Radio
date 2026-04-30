@@ -1,11 +1,12 @@
 const aud = new Audio();
-aud.crossOrigin = 'anonymous';
 
-// --- ESCUCHADOR GLOBAL DE ERRORES (Atrapa si se cae el internet o la emisora) ---
+// --- ESCUCHADOR GLOBAL DE ERRORES ---
 aud.addEventListener('error', () => {
+    // Si el error (código 1) es MEDIA_ERR_ABORTED, lo ignoramos porque fue por cambio de emisora
+    if (aud.error && aud.error.code === 1) return;
+
     const elNombre = document.getElementById('rep-nombre');
     if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
-    alert('Lo sentimos, la estación seleccionada no está disponible o el enlace está roto.');
 });
 
 // Estación actualmente reproduciéndose — accesible para favoritos
@@ -88,27 +89,29 @@ async function click(uuid) {
     }
 }
 
-function reproducir(url, nombre, lugar) {
-    if (!url) {
+function reproducir(urlOriginal, nombre, lugar) {
+    if (!urlOriginal) {
         console.log('Esta estación no tiene stream disponible');
         return false;
     }
 
-    // Guarda la estación actual para favoritos
-    window.estacionActualData = { url, nombre: nombre || '', lugar: lugar || '' };
+    const url = (location.protocol === 'https:' && urlOriginal.startsWith('http://')) 
+                ? urlOriginal.replace('http://', 'https://') 
+                : urlOriginal;
 
+    window.estacionActualData = { url: url, nombre: nombre || '', lugar: lugar || '' };
+
+    aud.pause(); // Pausamos antes de asignar la nueva URL
     aud.src = url;
 
     const promesa = aud.play();
 
-    // aud.play() puede devolver undefined en algunos navegadores
     if (promesa !== undefined) {
         promesa.catch(e => {
+            if (e.name === 'AbortError') return; // Ignorar cancelaciones por clics rápidos
             console.log('No se pudo conectar:', e);
-            // Ya no ponemos alert aquí, el EventListener global arriba se encargará de lanzarlo
         });
     }
-
 }
 
 function detener() {

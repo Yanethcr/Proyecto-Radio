@@ -161,4 +161,23 @@ if ($accion === "salir") {
     echo json_encode(["ok" => true]);
     exit;
 }
+// TERMINAR UNA JAM
+if ($accion === "terminar") {
+    $datos = json_decode(file_get_contents("php://input"), true);
+    $idJam = $datos["idJam"] ?? 0;
+
+    if ($idJam) {
+        // Actualizamos el estado de la Jam y le ponemos la fecha de fin
+        $stmt = $pdo->prepare("UPDATE Jam SET Estado = 'Terminada', FechaFin = NOW() WHERE IdJam = ?");
+        $stmt->execute([$idJam]);
+
+        // Opcional: Eliminar a los usuarios de la tabla JamUsuario para limpiar la sala
+        $pdo->prepare("DELETE FROM JamUsuario WHERE IdJam = ?")->execute([$idJam]);
+
+        echo json_encode(["ok" => true]);
+    } else {
+        echo json_encode(["ok" => false, "mensaje" => "ID de Jam no proporcionado."]);
+    }
+    exit;
+}
 ?>

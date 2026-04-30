@@ -19,7 +19,6 @@
   const panelLoader = document.getElementById('panel-loader');
 
   const aud = new Audio();
-  aud.crossOrigin = 'anonymous';
   window._audGlobo = aud;
   
   let audioActivo = null;
@@ -34,7 +33,11 @@
     if (elBtn)    elBtn.innerHTML = '<i class="fas fa-pause"></i>';
   }
 
-  function reproducir(url, nombre, lugar, btn) {
+  function reproducir(urlOriginal, nombre, lugar, btn) {
+    const url = (location.protocol === 'https:' && urlOriginal && urlOriginal.startsWith('http://')) 
+                ? urlOriginal.replace('http://', 'https://') 
+                : urlOriginal;
+
     if (audioActivo === url) {
       if (aud.paused) {
         aud.play().catch(() => {});
@@ -48,25 +51,34 @@
       return;
     }
     
+    aud.pause(); 
     aud.src = url;
-    aud.play().catch(() => {
-      if (btn) btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-      setTimeout(() => { if (btn) btn.innerHTML = '<i class="fas fa-play"></i>'; }, 2000);
-      const elNombre = document.getElementById('rep-nombre');
-      if (elNombre) elNombre.textContent = '❗ Estación no disponible';
-      alert('La estación no está disponible actualmente.');
-    });
+    
+    const promesa = aud.play();
+    if (promesa !== undefined) {
+      promesa.catch((error) => {
+        if (error.name === 'AbortError') return; // Ignorar interrupciones rápidas
+
+        if (btn) btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+        setTimeout(() => { if (btn) btn.innerHTML = '<i class="fas fa-play"></i>'; }, 2000);
+        const elNombre = document.getElementById('rep-nombre');
+        if (elNombre) elNombre.textContent = '❗ Estación no disponible';
+        
+        if(typeof window.alert === 'function') {
+            alert('La estación no está disponible actualmente.');
+        }
+      });
+    }
 
     audioActivo = url;
     estacionActual = { nombre, url, lugar };
     window.estacionActualData = estacionActual; 
 
-    // REGISTRO EN BASE DE DATOS REAL (No localstorage)
     fetch('backend/historial.php?accion=registrar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nombre: nombre, streamUrl: url, lugar: lugar })
-    });
+    }).catch(() => {});
 
     document.querySelectorAll('.em-play').forEach(b => b.innerHTML = '<i class="fas fa-play"></i>');
     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
@@ -168,6 +180,11 @@
                   sessionStorage.setItem('jam_estacion_url', estacionActual.url);
                   sessionStorage.setItem('jam_estacion_lugar', estacionActual.lugar);
                   sessionStorage.setItem('jam_codigo', codigo);
+                  
+                  // ¡LA SOLUCIÓN! Guardamos el rol y el ID para poder cerrarla después
+                  sessionStorage.setItem('jam_id', data.idJam);
+                  sessionStorage.setItem('jam_rol', 'Host');
+                  
                   window.location.href = 'jam.html';
               } else { alert(data.mensaje); this.innerHTML = iconoOriginal; }
           } catch (err) { alert("No se pudo crear la Jam."); this.innerHTML = iconoOriginal; }
@@ -194,7 +211,6 @@
   const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
   camera.position.set(0, 0, 2.8);
 
-  // Función para sincronizar tamaño del renderer con el contenedor real
   function syncSize() {
     const w = container.clientWidth  || container.offsetWidth  || 500;
     const h = container.clientHeight || container.offsetHeight || 500;
@@ -291,13 +307,10 @@
 
   let pointerStartX = 0; let pointerStartY = 0; let pointerMovido = false;
 
-  // touch-action:none permite que pointer events funcionen en móvil sin que el scroll los intercepte
   renderer.domElement.style.touchAction = 'none';
 
   renderer.domElement.addEventListener('pointerdown', e => {
-    // Detección de click vs drag
     pointerMovido = false; pointerStartX = e.clientX; pointerStartY = e.clientY;
-    // Inicio de arrastre
     isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 };
     renderer.domElement.style.cursor = 'grabbing'; renderer.domElement.setPointerCapture(e.pointerId);
   });
@@ -330,13 +343,35 @@
     for (const url of urls) { try { const res = await fetch(url); stations = await res.json(); if (stations.length) break; } catch (_) {} }
     panelLoader.style.display = 'none';
     if (!stations.length) { panelLista.innerHTML = `<p class="panel-vacio">Sin emisoras registradas.</p>`; return; }
-    stations.forEach(st => {
+    
+    const validas = stations.filter(st => {
+        const url = st.url_resolved || st.url;
+        if (!url) return false;
+        if (location.protocol === 'https:' && url.startsWith('http://')) return false;
+        return true;
+    }).sort((a, b) => b.votes - a.votes);
+
+    if (!validas.length) { panelLista.innerHTML = `<p class="panel-vacio">Sin emisoras con stream disponible.</p>`; return; }
+
+    validas.forEach(st => {
       const item = document.createElement('div'); item.className = 'em-item';
       const favicon = st.favicon ? `<img class="em-icon" src="${st.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-radio em-icon-fa\\'></i>'">` : `<i class="fas fa-radio em-icon-fa"></i>`;
       item.innerHTML = `
         <div class="em-info"> ${favicon} <div> <p class="em-nombre">${st.name}</p> <p class="em-tags">${st.tags || 'Radio'}</p> </div> </div>
         <button class="em-play control-btn"><i class="fas fa-play"></i></button>`;
-      item.querySelector('.em-play').addEventListener('click', () => reproducir(st.url_resolved || st.url, st.name, name, item.querySelector('.em-play')));
+      
+      const btnPlay = item.querySelector('.em-play');
+      
+      btnPlay.addEventListener('click', (e) => {
+          e.stopPropagation(); 
+          reproducir(st.url_resolved || st.url, st.name, name, btnPlay);
+      });
+
+      item.addEventListener('click', (e) => {
+          e.stopPropagation();
+          reproducir(st.url_resolved || st.url, st.name, name, btnPlay);
+      });
+
       panelLista.appendChild(item);
     });
   }
@@ -354,7 +389,6 @@
       });
   }
 
-
   window.addEventListener('pointermove', e => { 
       if (!isDragging) return; vel = { x: (e.clientY - prev.y) * 0.003, y: (e.clientX - prev.x) * 0.003 }; 
       globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; prev = { x: e.clientX, y: e.clientY }; 
@@ -366,7 +400,6 @@
 
   window.addEventListener('resize', syncSize);
 
-  // ResizeObserver: detecta cuando el contenedor cambia de tamaño (cambio de orientación, etc.)
   if (window.ResizeObserver) {
     new ResizeObserver(syncSize).observe(container);
   }
@@ -377,9 +410,7 @@
     else if (!isDragging) { vel.x *= 0.93; vel.y *= 0.93; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; }
     renderer.render(scene, camera);
   }
-  // Diferir el primer render hasta que el navegador termine el layout.
-  // Usamos doble-RAF + fallback de 200 ms para garantizar que el contenedor
-  // ya tenga dimensiones reales en móvil antes de llamar syncSize().
+
   function iniciarGlobo() {
     syncSize();
     animate();
