@@ -456,4 +456,7 @@
   }
   animate();
 
+  // Exponer función reproducir para uso externo (barra de búsqueda)
+  window._reproducirGlobo = reproducir;
+
 })();

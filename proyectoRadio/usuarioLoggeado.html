@@ -41,8 +41,6 @@
                         <p class="jam-dropdown-title">
                             <i class="fas fa-door-open"></i> Unirse a una Jam
                         </p>
-                        <input class="jam-dropdown-input" type="text" id="inputCodigoJam"
-                               placeholder="Código de sala" maxlength="6">
                         <input class="jam-dropdown-input" type="text" id="inputCodigoJam" placeholder="Código de sala"
                             maxlength="6">
                         <button class="jam-dropdown-btn" id="btnUnirse" disabled>Entrar</button>
@@ -124,9 +122,9 @@
                 </a>
             </div>
             <div class="reproductor-controles">
-                <button class="control-btn"><i class="fas fa-backward-step"></i></button>
+                <button class="control-btn" id="rep-prev"><i class="fas fa-backward-step"></i></button>
                 <button class="control-btn" id="rep-playpause"><i class="fas fa-play"></i></button>
-                <button class="control-btn"><i class="fas fa-forward-step"></i></button>
+                <button class="control-btn" id="rep-next"><i class="fas fa-forward-step"></i></button>
             </div>
             <div class="reproductor-volumen">
                 <i class="fas fa-volume-high"></i>
@@ -180,6 +178,7 @@
                     <i class="fas fa-xmark"></i>
                 </button>
             </div>
+
             <div class="buscador-amigos">
                 <i class="fas fa-magnifying-glass"></i>
                 <input type="text" id="inputBuscarAmigo" placeholder="Buscar nuevos amigos...">
@@ -322,6 +321,7 @@
             try {
                 const res = await fetch('backend/amigos.php?accion=listar');
                 const data = await res.json();
+
                 contenedorAmigos.innerHTML = '';
                 if (data.amigos.length === 0) {
                     contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:13px;">No tienes amigos agregados aún.</p>';
@@ -358,6 +358,7 @@
                         }
 
                         this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
                         const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                         let codigo = '';
                         for (let i = 0; i < 6; i++) codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
@@ -373,6 +374,7 @@
                                     lugar: window.estacionActualData.lugar
                                 })
                             });
+
                             // Enviar la invitación al amigo
                             await fetch('backend/jam.php?accion=invitar', {
                                 method: 'POST',
@@ -383,6 +385,7 @@
                         } catch (err) {
                             alert("Error al enviar la invitación.");
                         }
+
                         this.innerHTML = '<i class="fas fa-headphones"></i>';
                     });
                 });
@@ -485,6 +488,7 @@
             try {
                 const res = await fetch('backend/jam.php?accion=revisar');
                 const data = await res.json();
+
                 if (data.ok && data.invitacion) {
                     const inv = data.invitacion;
                     mostrarConfirmacion(
@@ -778,4 +782,5 @@
         });
     </script>
 </body>
+
 </html>
