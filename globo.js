@@ -1,9 +1,8 @@
 /* =============================================
-   AUDIO TRAVELER — globo.js v2 corregido
+   AUDIO TRAVELER — globo.js v2 (DB Connect)
    ============================================= */
 
 (function () {
-
   const RADIO_API   = 'https://de1.api.radio-browser.info/json';
   const GLOBE_R     = 1;
   const SEG         = 64;
@@ -24,7 +23,7 @@
   window._audGlobo = aud;
   
   let audioActivo = null;
-  let estacionActual = null; // Para guardar en favoritos
+  let estacionActual = null;
 
   function actualizarReproductor(nombre, lugar) {
     const elNombre = document.getElementById('rep-nombre');
@@ -53,28 +52,31 @@
     aud.play().catch(() => {
       if (btn) btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
       setTimeout(() => { if (btn) btn.innerHTML = '<i class="fas fa-play"></i>'; }, 2000);
+      const elNombre = document.getElementById('rep-nombre');
+      if (elNombre) elNombre.textContent = '❗ Estación no disponible';
+      alert('La estación no está disponible actualmente.');
     });
 
     audioActivo = url;
-    // Guardamos los datos local y globalmente
     estacionActual = { nombre, url, lugar };
-    window.estacionActualData = estacionActual; // <--- NUEVO: Para enviar la invitación
+    window.estacionActualData = estacionActual; 
+
+    // REGISTRO EN BASE DE DATOS REAL (No localstorage)
+    fetch('backend/historial.php?accion=registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nombre: nombre, streamUrl: url, lugar: lugar })
+    });
 
     document.querySelectorAll('.em-play').forEach(b => b.innerHTML = '<i class="fas fa-play"></i>');
     if (btn) btn.innerHTML = '<i class="fas fa-pause"></i>';
     actualizarReproductor(nombre, lugar);
   }
 
-  // ── CONEXIÓN CON EL BACKEND DE ARTURO (EL CORAZÓN) ──
   document.querySelector('.icono-btn[title="Favorito"]').addEventListener('click', async function() {
-    if (!estacionActual) {
-        alert("Primero selecciona una emisora.");
-        return;
-    }
-
+    if (!estacionActual) { alert("Primero selecciona una emisora."); return; }
     const btnCorazon = this;
     const icono = btnCorazon.querySelector('i');
-
     try {
         const res = await fetch('backend/favoritos.php?accion=guardar', {
             method: 'POST',
@@ -82,155 +84,96 @@
             body: JSON.stringify({
                 nombre: estacionActual.nombre,
                 streamUrl: estacionActual.url,
-                pais: estacionActual.lugar, 
-                ciudad: "Internacional",
-                genero: "Radio"
+                pais: estacionActual.lugar, ciudad: "Internacional", genero: "Radio"
             })
         });
-
         const data = await res.json();
-        if (data.ok) {
-            icono.style.color = '#1cf00c'; 
-            alert("Guardado en favoritos");
-        } else {
-            alert(data.mensaje);
-        }
-    } catch (err) {
-        alert("No se pudo conectar con la base de datos.");
-    }
+        if (data.ok) { icono.style.color = '#1cf00c'; alert("Guardado en favoritos"); } 
+        else { alert(data.mensaje); }
+    } catch (err) { alert("No se pudo conectar con la base de datos."); }
   });
 
-  // ── FUNCIONALIDAD DE LOS BOTONES LATERALES ──
-
-  // 1. Botón Privado
   const btnPrivado = document.querySelector('.icono-btn[title="Privado"]');
   if (btnPrivado) {
       btnPrivado.addEventListener('click', function() {
           const icono = this.querySelector('i');
           if (icono.classList.contains('fa-lock')) {
               icono.classList.replace('fa-lock', 'fa-lock-open');
-              this.style.color = 'var(--accent)';
-              this.style.borderColor = 'var(--accent)';
-              this.title = "Público";
+              this.style.color = 'var(--accent)'; this.style.borderColor = 'var(--accent)'; this.title = "Público";
           } else {
               icono.classList.replace('fa-lock-open', 'fa-lock');
-              this.style.color = 'var(--text-secondary)';
-              this.style.borderColor = 'var(--purple-border)';
-              this.title = "Privado";
+              this.style.color = 'var(--text-secondary)'; this.style.borderColor = 'var(--purple-border)'; this.title = "Privado";
           }
       });
   }
 
-  // 2. Botón Compartir (Aviso de copiado)
   const btnCompartir = document.querySelector('.icono-btn[title="Compartir"]');
   if (btnCompartir) {
       btnCompartir.addEventListener('click', function() {
-          if (!estacionActual) {
-              alert("Primero selecciona una emisora del globo para compartir.");
-              return;
-          }
+          if (!estacionActual) { alert("Primero selecciona una emisora del globo para compartir."); return; }
           const texto = `¡Estoy escuchando ${estacionActual.nombre} desde ${estacionActual.lugar} en Audio Traveler! 🎧🌍`;
           navigator.clipboard.writeText(texto).then(() => {
               alert("¡Texto copiado al portapapeles! 📋\nListo para pegar en WhatsApp o redes sociales.");
               const iconoOriginal = this.innerHTML;
-              this.innerHTML = '<i class="fas fa-check"></i>';
-              this.style.color = 'var(--accent)';
-              setTimeout(() => {
-                  this.innerHTML = iconoOriginal;
-                  this.style.color = '';
-              }, 2000);
+              this.innerHTML = '<i class="fas fa-check"></i>'; this.style.color = 'var(--accent)';
+              setTimeout(() => { this.innerHTML = iconoOriginal; this.style.color = ''; }, 2000);
           });
       });
   }
 
-  // 3. Botón Enviar (Abre el panel de amigos)
   const btnEnviar = document.querySelector('.icono-btn[title="Enviar"]');
   if (btnEnviar) {
       btnEnviar.addEventListener('click', function(e) {
           e.stopPropagation(); 
           const panelAmigos = document.getElementById('panelAmigos');
-          if (panelAmigos) {
-              panelAmigos.classList.add('abierto');
-          }
+          if (panelAmigos) panelAmigos.classList.add('abierto');
       });
   }
 
-  // 4. Botón Aleatoria
   const btnAleatoria = document.querySelector('.icono-btn[title="Aleatoria"]');
   if (btnAleatoria) {
       btnAleatoria.addEventListener('click', async function() {
           const iconoOriginal = this.innerHTML;
-          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-          this.style.color = 'var(--accent)';
-
+          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; this.style.color = 'var(--accent)';
           try {
               const res = await fetch(`${RADIO_API}/stations/search?limit=100&order=votes&reverse=true&hidebroken=true`);
               const stations = await res.json();
-              
               if (stations.length > 0) {
                   const randIndex = Math.floor(Math.random() * stations.length);
                   const st = stations[randIndex];
                   reproducir(st.url_resolved || st.url, st.name, st.country || 'Internacional', null);
               }
-          } catch (err) {
-              alert("Error al buscar estación aleatoria.");
-          }
-
-          this.innerHTML = iconoOriginal;
-          this.style.color = '';
+          } catch (err) { alert("Error al buscar estación aleatoria."); }
+          this.innerHTML = iconoOriginal; this.style.color = '';
       });
   }
 
-  // 5. Botón Crear Jam (Reproductor Inferior)
   const btnCrearJam = document.querySelector('.icono-btn[title="Jam"]');
   if (btnCrearJam) {
       const enlacePadre = btnCrearJam.closest('a');
       if (enlacePadre) enlacePadre.addEventListener('click', e => e.preventDefault());
-
       btnCrearJam.addEventListener('click', async function() {
-          if (!estacionActual) {
-              alert("Selecciona una emisora del globo antes de iniciar la Jam.");
-              return;
-          }
-
-          const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-          let codigo = '';
+          if (!estacionActual) { alert("Selecciona una emisora del globo antes de iniciar la Jam."); return; }
+          const caracteres = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'; let codigo = '';
           for (let i = 0; i < 6; i++) codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
-
-          const iconoOriginal = this.innerHTML;
-          this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-
+          const iconoOriginal = this.innerHTML; this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
           try {
               const res = await fetch('backend/jam.php?accion=crear', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                      codigo: codigo,
-                      streamUrl: estacionActual.url,
-                      nombre: estacionActual.nombre,
-                      lugar: estacionActual.lugar
-                  })
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ codigo: codigo, streamUrl: estacionActual.url, nombre: estacionActual.nombre, lugar: estacionActual.lugar })
               });
               const data = await res.json();
-              
               if (data.ok) {
                   sessionStorage.setItem('jam_estacion_nombre', estacionActual.nombre);
                   sessionStorage.setItem('jam_estacion_url', estacionActual.url);
                   sessionStorage.setItem('jam_estacion_lugar', estacionActual.lugar);
                   sessionStorage.setItem('jam_codigo', codigo);
                   window.location.href = 'jam.html';
-              } else {
-                  alert(data.mensaje);
-                  this.innerHTML = iconoOriginal;
-              }
-          } catch (err) {
-              alert("No se pudo crear la Jam.");
-              this.innerHTML = iconoOriginal;
-          }
+              } else { alert(data.mensaje); this.innerHTML = iconoOriginal; }
+          } catch (err) { alert("No se pudo crear la Jam."); this.innerHTML = iconoOriginal; }
       });
   }
 
-  // Resto del código Three.js...
   document.getElementById('rep-playpause')?.addEventListener('click', () => {
     if (!audioActivo) return;
     if (aud.paused) {
@@ -254,38 +197,25 @@
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
   const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-  sun.position.set(5, 3, 5);
-  scene.add(sun);
+  sun.position.set(5, 3, 5); scene.add(sun);
   const rimLight = new THREE.DirectionalLight(0x4400aa, 0.4);
-  rimLight.position.set(-4, -2, -4);
-  scene.add(rimLight);
+  rimLight.position.set(-4, -2, -4); scene.add(rimLight);
 
-  const globeGroup = new THREE.Group();
-  scene.add(globeGroup);
+  const globeGroup = new THREE.Group(); scene.add(globeGroup);
 
   const oceanMesh = new THREE.Mesh(
     new THREE.SphereGeometry(GLOBE_R, SEG, SEG),
-    new THREE.MeshPhongMaterial({
-      color:     0x061428,
-      emissive:  0x020814,
-      shininess: 80,
-    })
+    new THREE.MeshPhongMaterial({ color: 0x061428, emissive: 0x020814, shininess: 80 })
   );
   globeGroup.add(oceanMesh);
 
   globeGroup.add(new THREE.Mesh(
     new THREE.SphereGeometry(GLOBE_R * 1.05, SEG, SEG),
-    new THREE.MeshPhongMaterial({
-      color: 0x1144cc,
-      side: THREE.BackSide,
-      transparent: true, opacity: 0.08,
-    })
+    new THREE.MeshPhongMaterial({ color: 0x1144cc, side: THREE.BackSide, transparent: true, opacity: 0.08 })
   ));
 
   const mkMat = (color, emissive, opacity) => new THREE.MeshPhongMaterial({
-    color, emissive: emissive || 0x000000,
-    transparent: true, opacity: opacity || 1,
-    side: THREE.DoubleSide,
+    color, emissive: emissive || 0x000000, transparent: true, opacity: opacity || 1, side: THREE.DoubleSide
   });
 
   const MAT_DEFAULT  = mkMat(0x1a4a2e, 0x0a2218, 0.95);
@@ -294,33 +224,22 @@
   const MAT_BORDER   = new THREE.LineBasicMaterial({ color: 0x3dff9a, transparent: true, opacity: 0.5 });
 
   function ll2v(lat, lon, r) {
-    const phi   = (90 - lat) * Math.PI / 180;
-    const theta = (lon + 180) * Math.PI / 180;
-    return new THREE.Vector3(
-      -r * Math.sin(phi) * Math.cos(theta),
-       r * Math.cos(phi),
-       r * Math.sin(phi) * Math.sin(theta)
-    );
+    const phi = (90 - lat) * Math.PI / 180; const theta = (lon + 180) * Math.PI / 180;
+    return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
   }
 
   function buildPoly(rings, r) {
     const meshes = [], lines = [];
     rings.forEach(ring => {
       if (ring.length < 3) return;
-      const pts    = ring.map(([lon, lat]) => ll2v(lat, lon, r));
+      const pts = ring.map(([lon, lat]) => ll2v(lat, lon, r));
       const center = pts.reduce((a, b) => a.clone().add(b), new THREE.Vector3()).divideScalar(pts.length).normalize().multiplyScalar(r);
-      const verts  = [];
-      for (let i = 0; i < pts.length - 1; i++) {
-        verts.push(center.x, center.y, center.z, pts[i].x, pts[i].y, pts[i].z, pts[i+1].x, pts[i+1].y, pts[i+1].z);
-      }
+      const verts = [];
+      for (let i = 0; i < pts.length - 1; i++) verts.push(center.x, center.y, center.z, pts[i].x, pts[i].y, pts[i].z, pts[i+1].x, pts[i+1].y, pts[i+1].z);
       const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
-      geo.computeVertexNormals();
-      const mesh = new THREE.Mesh(geo, MAT_DEFAULT.clone());
-      mesh.renderOrder = 1;
-      meshes.push(mesh);
-      const lGeo = new THREE.BufferGeometry().setFromPoints([...pts, pts[0]]);
-      lines.push(new THREE.Line(lGeo, MAT_BORDER.clone()));
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3)); geo.computeVertexNormals();
+      const mesh = new THREE.Mesh(geo, MAT_DEFAULT.clone()); mesh.renderOrder = 1; meshes.push(mesh);
+      const lGeo = new THREE.BufferGeometry().setFromPoints([...pts, pts[0]]); lines.push(new THREE.Line(lGeo, MAT_BORDER.clone()));
     });
     return { meshes, lines };
   }
@@ -339,19 +258,15 @@
     .then(topo => {
       const geo = topojson.feature(topo, topo.objects.countries);
       geo.features.forEach(f => {
-        const numId = String(f.id);
-        const iso2  = NUM_TO_ISO[parseInt(numId)] || '';
-        const name  = PAIS_ES[iso2] || iso2 || `País ${numId}`;
-        const group = new THREE.Group();
-        const allMeshes = [];
+        const numId = String(f.id); const iso2 = NUM_TO_ISO[parseInt(numId)] || ''; const name = PAIS_ES[iso2] || iso2 || `País ${numId}`;
+        const group = new THREE.Group(); const allMeshes = [];
         const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
         polys.forEach(poly => {
           const { meshes, lines } = buildPoly(poly, GLOBE_R * 1.001);
           meshes.forEach(m => { m.userData = { iso2, name, numId }; group.add(m); allMeshes.push(m); });
           lines.forEach(l => group.add(l));
         });
-        globeGroup.add(group);
-        countryObjects.push({ group, code: iso2, numId, name, meshes: allMeshes });
+        globeGroup.add(group); countryObjects.push({ group, code: iso2, numId, name, meshes: allMeshes });
       });
     });
 
@@ -360,15 +275,20 @@
 
   function getHit(e) {
     const rect = renderer.domElement.getBoundingClientRect();
-    mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1;
-    mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
+    mouse.x =  ((e.clientX - rect.left) / rect.width)  * 2 - 1; mouse.y = -((e.clientY - rect.top)  / rect.height) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
-    const allM = countryObjects.flatMap(o => o.meshes);
-    const hits = raycaster.intersectObjects(allM, false);
+    const allM = countryObjects.flatMap(o => o.meshes); const hits = raycaster.intersectObjects(allM, false);
     return hits.length ? countryObjects.find(o => o.numId === hits[0].object.userData.numId) : null;
   }
 
-  renderer.domElement.addEventListener('mousemove', e => {
+  let pointerStartX = 0; let pointerStartY = 0; let pointerMovido = false;
+
+  renderer.domElement.addEventListener('pointerdown', e => {
+    pointerMovido = false; pointerStartX = e.clientX; pointerStartY = e.clientY;
+  });
+
+  renderer.domElement.addEventListener('pointermove', e => {
+    if (Math.abs(e.clientX - pointerStartX) > 5 || Math.abs(e.clientY - pointerStartY) > 5) { pointerMovido = true; }
     if (isDragging) return;
     const obj = getHit(e);
     if (obj !== hoveredCountry) {
@@ -379,62 +299,16 @@
     }
   });
 
-  let clickMovido = false;
-  renderer.domElement.addEventListener('mousedown', () => clickMovido = false);
-  renderer.domElement.addEventListener('mousemove', () => clickMovido = true);
-  renderer.domElement.addEventListener('click', e => {
-    if (clickMovido) return;
+  renderer.domElement.addEventListener('pointerup', e => {
+    if (pointerMovido) return;
     const obj = getHit(e);
     if (!obj) return;
     if (selectedCountry && selectedCountry !== obj) setMat(selectedCountry, MAT_DEFAULT);
-    selectedCountry = obj;
-    setMat(obj, MAT_SELECTED);
-    cargarEmisoras(obj.code, obj.name);
-  });
-
-  // --- EVENTOS TÁCTILES PARA MÓVILES ---
-  let touchStartX = 0;
-  let touchStartY = 0;
-  let touchMovido = false;
-
-  renderer.domElement.addEventListener('touchstart', e => {
-    // Tomamos el primer dedo que toca la pantalla
-    const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
-    touchMovido = false;
-  }, { passive: true });
-
-  renderer.domElement.addEventListener('touchmove', e => {
-    const touch = e.touches[0];
-    // Damos una tolerancia de 10 píxeles. 
-    // Si el dedo se mueve más de 10px, asumimos que el usuario está girando el globo, no haciendo clic.
-    if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
-      touchMovido = true;
-    }
-  }, { passive: true });
-
-  renderer.domElement.addEventListener('touchend', e => {
-    if (touchMovido) return; // Si arrastró el dedo para girar, ignoramos el toque
-    
-    // Al levantar el dedo, 'touches' se vacía. Por eso usamos 'changedTouches'
-    const touch = e.changedTouches[0];
-    
-    // getHit necesita un objeto que tenga clientX y clientY, ¡el objeto touch los tiene!
-    const obj = getHit(touch); 
-    if (!obj) return;
-    
-    if (selectedCountry && selectedCountry !== obj) setMat(selectedCountry, MAT_DEFAULT);
-    selectedCountry = obj;
-    setMat(obj, MAT_SELECTED);
-    cargarEmisoras(obj.code, obj.name);
+    selectedCountry = obj; setMat(obj, MAT_SELECTED); cargarEmisoras(obj.code, obj.name);
   });
 
   async function cargarEmisoras(code, name) {
-    panel.classList.add('abierto');
-    panelTitulo.textContent   = name || code || 'País';
-    panelLista.innerHTML      = '';
-    panelLoader.style.display = 'flex';
+    panel.classList.add('abierto'); panelTitulo.textContent = name || code || 'País'; panelLista.innerHTML = ''; panelLoader.style.display = 'flex';
     if (!code) { panelLoader.style.display = 'none'; return; }
     const urls = [ `${RADIO_API}/stations/bycountrycodeexact/${code}?hidebroken=true&order=votes&reverse=true&limit=30`, `${RADIO_API}/stations/bycountry/${encodeURIComponent(name)}?hidebroken=true&order=votes&reverse=true&limit=30` ];
     let stations = [];
@@ -442,8 +316,7 @@
     panelLoader.style.display = 'none';
     if (!stations.length) { panelLista.innerHTML = `<p class="panel-vacio">Sin emisoras registradas.</p>`; return; }
     stations.forEach(st => {
-      const item = document.createElement('div');
-      item.className = 'em-item';
+      const item = document.createElement('div'); item.className = 'em-item';
       const favicon = st.favicon ? `<img class="em-icon" src="${st.favicon}" onerror="this.outerHTML='<i class=\\'fas fa-radio em-icon-fa\\'></i>'">` : `<i class="fas fa-radio em-icon-fa"></i>`;
       item.innerHTML = `
         <div class="em-info"> ${favicon} <div> <p class="em-nombre">${st.name}</p> <p class="em-tags">${st.tags || 'Radio'}</p> </div> </div>
@@ -455,46 +328,39 @@
 
   panelCerrar.addEventListener('click', () => { panel.classList.remove('abierto'); aud.pause(); audioActivo = null; if (selectedCountry) { setMat(selectedCountry, MAT_DEFAULT); selectedCountry = null; } });
 
-  // ── VARIABLES DE ESTADO Y EVENTO PARA FIJAR EL GLOBO ──
-  let isDragging = false, prev = { x: 0, y: 0 }, vel = { x: 0, y: 0 }, autoRotate = true, autoTimer = null;
-  let isLocked = false; 
+  let isDragging = false, prev = { x: 0, y: 0 }, vel = { x: 0, y: 0 }, autoRotate = true, autoTimer = null; let isLocked = false; 
 
   const btnFijar = document.getElementById('btnFijarGlobo');
   if (btnFijar) {
       btnFijar.addEventListener('click', () => {
           isLocked = !isLocked;
-          if (isLocked) {
-              btnFijar.innerHTML = '<i class="fas fa-lock"></i> Globo Fijo';
-              btnFijar.style.color = 'var(--accent)';
-              btnFijar.style.borderColor = 'var(--accent)';
-          } else {
-              btnFijar.innerHTML = '<i class="fas fa-unlock"></i> Rotación Activa';
-              btnFijar.style.color = 'var(--text-secondary)';
-              btnFijar.style.borderColor = 'var(--purple-border)';
-          }
+          if (isLocked) { btnFijar.innerHTML = '<i class="fas fa-lock"></i> Globo Fijo'; btnFijar.style.color = 'var(--accent)'; btnFijar.style.borderColor = 'var(--accent)'; } 
+          else { btnFijar.innerHTML = '<i class="fas fa-unlock"></i> Rotación Activa'; btnFijar.style.color = 'var(--text-secondary)'; btnFijar.style.borderColor = 'var(--purple-border)'; }
       });
   }
 
-  renderer.domElement.addEventListener('mousedown', e => { isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 }; renderer.domElement.style.cursor = 'grabbing'; });
-  window.addEventListener('mousemove', e => { if (!isDragging) return; vel = { x: (e.clientY - prev.y) * 0.003, y: (e.clientX - prev.x) * 0.003 }; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; prev = { x: e.clientX, y: e.clientY }; });
-  window.addEventListener('mouseup', () => { if (!isDragging) return; isDragging = false; renderer.domElement.style.cursor = 'grab'; autoTimer = setTimeout(() => autoRotate = true, 2500); });
+  renderer.domElement.addEventListener('pointerdown', e => { 
+      isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 }; 
+      renderer.domElement.style.cursor = 'grabbing'; renderer.domElement.setPointerCapture(e.pointerId);
+  });
+  window.addEventListener('pointermove', e => { 
+      if (!isDragging) return; vel = { x: (e.clientY - prev.y) * 0.003, y: (e.clientX - prev.x) * 0.003 }; 
+      globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; prev = { x: e.clientX, y: e.clientY }; 
+  });
+  window.addEventListener('pointerup', e => { 
+      if (!isDragging) return; isDragging = false; renderer.domElement.style.cursor = 'grab'; autoTimer = setTimeout(() => autoRotate = true, 2500); 
+      if (e.target === renderer.domElement) renderer.domElement.releasePointerCapture(e.pointerId);
+  });
 
   window.addEventListener('resize', () => { camera.aspect = W() / H(); camera.updateProjectionMatrix(); renderer.setSize(W(), H()); });
 
   function animate() {
     requestAnimationFrame(animate);
-    if (autoRotate && !isLocked) {
-        globeGroup.rotation.y += 0.0015;
-    } else if (!isDragging) { 
-        vel.x *= 0.93; vel.y *= 0.93; 
-        globeGroup.rotation.x += vel.x; 
-        globeGroup.rotation.y += vel.y; 
-    }
+    if (autoRotate && !isLocked) { globeGroup.rotation.y += 0.0015; } 
+    else if (!isDragging) { vel.x *= 0.93; vel.y *= 0.93; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; }
     renderer.render(scene, camera);
   }
   animate();
 
-  // Exponer función reproducir para uso externo (barra de búsqueda)
   window._reproducirGlobo = reproducir;
-
 })();

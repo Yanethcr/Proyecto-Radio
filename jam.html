@@ -56,6 +56,14 @@
             </div>
         </div>
 
+        <!-- Contenedor de Usuarios Conectados -->
+        <div class="jam-usuarios-container">
+            <h4><i class="fas fa-users"></i> Escuchando ahora en esta sala</h4>
+            <div id="listaUsuariosJam" class="jam-usuarios-lista">
+                <span style="color: var(--text-muted); font-size: 13px;">Cargando exploradores...</span>
+            </div>
+        </div>
+
         <div class="barra-busqueda-jam">
             <i class="fas fa-magnifying-glass"></i>
             <input type="text" placeholder="Buscar ciudad, país o estación">
@@ -138,7 +146,7 @@
         document.querySelector('.jam-lugar').textContent    = jamLugar;
         document.getElementById('codigoSala').textContent   = jamCodigo;
 
-        // 3. REPRODUCIR AUDIO AUTOMÁTICAMENTE
+        // 3. REPRODUCIR AUDIO AUTOMÁTICAMENTE Y SINCRONIZAR
         const audJam = new Audio(jamUrl);
         audJam.crossOrigin = 'anonymous';
         
@@ -151,8 +159,11 @@
             console.log("Autoplay bloqueado por el navegador.");
         });
 
+        // TRUCO DE SINCRONIZACIÓN
         btnPlayPause.addEventListener('click', () => {
             if (audJam.paused) {
+                // Recargamos la fuente original para saltar al tiempo real (en vivo)
+                audJam.src = jamUrl;
                 audJam.play();
                 btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
             } else {
@@ -166,16 +177,46 @@
             audJam.pause();
         });
 
-        // 4. LÓGICA DEL PANEL DE AMIGOS
+        async function actualizarUsuariosJam() {
+            const codigoSala = sessionStorage.getItem('jam_codigo');
+            if (!codigoSala) return;
+
+            try {
+                const res = await fetch(`backend/jam.php?accion=usuarios&codigo=${codigoSala}`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const contenedor = document.getElementById('listaUsuariosJam');
+                    contenedor.innerHTML = ''; 
+                    
+                    if(data.usuarios && data.usuarios.length > 0) {
+                        data.usuarios.forEach(u => {
+                            contenedor.innerHTML += `
+                                <span class="jam-usuario-tag">
+                                    <i class="fas fa-user"></i> @${u.Username}
+                                </span>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error("Error en sincronización de usuarios.");
+            }
+        }
+        // Polling cada 4 segundos
+        setInterval(actualizarUsuariosJam, 4000);
+        actualizarUsuariosJam(); // Ejecución inmediata al cargar
+
+        // 5. LÓGICA DEL PANEL DE AMIGOS
         const panelAmigos = document.getElementById('panelAmigos');
         const btnInvitar = document.getElementById('btnInvitar');
         const contenedorAmigos = document.getElementById('listaAmigos');
 
         // Abrir panel
         btnInvitar.addEventListener('click', function (e) {
-            e.stopPropagation(); // Evita que se cierre instantáneamente
+            e.stopPropagation(); 
             panelAmigos.classList.add('abierto');
-            cargarAmigos(); // Consultar BD al abrir
+            cargarAmigos(); 
         });
 
         // Cerrar panel con la X
@@ -243,7 +284,7 @@
                 document.querySelectorAll('.btn-mandar-codigo').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const amigoNombre = this.dataset.nombre;
-                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // Spinner de carga
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
                         
                         try {
                             const res = await fetch('backend/jam.php?accion=invitar', {

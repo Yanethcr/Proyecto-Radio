@@ -33,7 +33,7 @@ if ($accion === "crear") {
 
     $pdo->prepare("INSERT INTO JamUsuario (IdJam, IdUsuario, Rol) VALUES (?, ?, 'Host')")->execute([$idJam, $idUsuario]);
 
-    echo json_encode(["ok" => true]);
+    echo json_encode(["ok" => true, "idJam" => $idJam]);
     exit;
 }
 
@@ -52,22 +52,20 @@ if ($accion === "unirse") {
     }
 
     $pdo->prepare("INSERT IGNORE INTO JamUsuario (IdJam, IdUsuario, Rol) VALUES (?, ?, 'Invitado')")->execute([$jam["IdJam"], $idUsuario]);
-    echo json_encode(["ok" => true, "estacion" => $jam["Nombre"], "stream_url" => $jam["Stream_url"]]);
+    echo json_encode(["ok" => true, "estacion" => $jam["Nombre"], "stream_url" => $jam["Stream_url"], "idJam" => $jam["IdJam"]]);
     exit;
 }
 
-// ENVIAR INVITACIÓN (Nuevo)
+// ENVIAR INVITACIÓN
 if ($accion === "invitar") {
     $datos = json_decode(file_get_contents("php://input"), true);
     $codigoJam = $datos["codigo"] ?? "";
     $amigoUsername = $datos["amigo"] ?? "";
 
-    // Obtener ID del amigo
     $stmtU = $pdo->prepare("SELECT IdUsuario FROM Usuarios WHERE Username = ?");
     $stmtU->execute([$amigoUsername]);
     $amigo = $stmtU->fetch();
 
-    // Obtener ID de la Jam
     $stmtJ = $pdo->prepare("SELECT IdJam FROM Jam WHERE Codigo = ? AND Estado = 'Activa'");
     $stmtJ->execute([$codigoJam]);
     $jam = $stmtJ->fetch();
@@ -81,8 +79,9 @@ if ($accion === "invitar") {
     exit;
 }
 
-// REVISAR INVITACIONES PENDIENTES (Nuevo - Para el Pop-Up en tiempo real)
+// REVISAR INVITACIONES PENDIENTES CON CADUCIDAD DE 1 MINUTO
 if ($accion === "revisar") {
+    // Solo toma invitaciones de hace 1 minuto o menos
     $stmt = $pdo->prepare("
         SELECT i.IdInvitacion, j.Codigo, u.Username AS Remitente, e.Nombre AS Estacion
         FROM InvitacionesJam i
@@ -90,6 +89,7 @@ if ($accion === "revisar") {
         JOIN Usuarios u ON i.IdRemitente = u.IdUsuario
         JOIN Estaciones e ON j.IdEstacion = e.IdEstacion
         WHERE i.IdDestinatario = ? AND i.Estado = 'Pendiente' AND j.Estado = 'Activa'
+        AND i.Fecha >= NOW() - INTERVAL 1 MINUTE
         LIMIT 1
     ");
     $stmt->execute([$idUsuario]);
@@ -99,7 +99,7 @@ if ($accion === "revisar") {
     exit;
 }
 
-// RESPONDER A INVITACIÓN (Nuevo)
+// RESPONDER A INVITACIÓN
 if ($accion === "responder") {
     $datos = json_decode(file_get_contents("php://input"), true);
     $idInvitacion = $datos["idInvitacion"] ?? 0;
@@ -107,6 +107,22 @@ if ($accion === "responder") {
 
     $pdo->prepare("UPDATE InvitacionesJam SET Estado = ? WHERE IdInvitacion = ? AND IdDestinatario = ?")->execute([$estado, $idInvitacion, $idUsuario]);
     echo json_encode(["ok" => true]);
+    exit;
+}
+
+// LISTAR USUARIOS EN LA SALA
+if ($accion === "usuarios") {
+    $codigo = $_GET["codigo"] ?? "";
+    $stmt = $pdo->prepare("
+        SELECT u.Username 
+        FROM JamUsuario ju
+        JOIN Usuarios u ON ju.IdUsuario = u.IdUsuario
+        JOIN Jam j ON ju.IdJam = j.IdJam
+        WHERE j.Codigo = ? AND j.Estado = 'Activa'
+    ");
+    $stmt->execute([$codigo]);
+    $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode(["ok" => true, "usuarios" => $usuarios]);
     exit;
 }
 ?>

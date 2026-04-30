@@ -1,6 +1,13 @@
 const aud = new Audio();
 aud.crossOrigin = 'anonymous';
 
+// --- ESCUCHADOR GLOBAL DE ERRORES (Atrapa si se cae el internet o la emisora) ---
+aud.addEventListener('error', () => {
+    const elNombre = document.getElementById('rep-nombre');
+    if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
+    alert('Lo sentimos, la estación seleccionada no está disponible o el enlace está roto.');
+});
+
 // Estación actualmente reproduciéndose — accesible para favoritos
 window.estacionActualData = null;
 
@@ -97,20 +104,9 @@ function reproducir(url, nombre, lugar) {
     // aud.play() puede devolver undefined en algunos navegadores
     if (promesa !== undefined) {
         promesa.catch(e => {
-            const elNombre = document.getElementById('rep-nombre');
-            if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
             console.log('No se pudo conectar:', e);
-            // AGREGAMOS ESTA LÍNEA:
-            alert('Lo sentimos, la estación seleccionada no está disponible en este momento.'); 
+            // Ya no ponemos alert aquí, el EventListener global arriba se encargará de lanzarlo
         });
-    } else {
-        // Fallback para navegadores que no devuelven Promise
-        aud.onerror = () => {
-            const elNombre = document.getElementById('rep-nombre');
-            if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
-            // AGREGAMOS ESTA LÍNEA:
-            alert('Lo sentimos, la estación seleccionada no está disponible en este momento.');
-        };
     }
 
 }

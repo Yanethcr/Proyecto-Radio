@@ -3,7 +3,6 @@
 
 <head>
     <script>
-        // Guard de sesión — redirige si no está loggeado
         if (!sessionStorage.getItem('at_logged')) {
             window.location.replace('inicio.html');
         }
@@ -21,30 +20,21 @@
     <header>
         <nav>
             <div class="logo">
-                <a href="index.html">
-                    <h1>Audio Traveler</h1>
-                </a>
+                <a href="index.html"><h1>Audio Traveler</h1></a>
             </div>
             <div class="nav-links">
-                <span id="nombreUsuarioNav"
-                    style="color: var(--accent); font-weight: 600; font-family: var(--font-display); margin-right: 15px; letter-spacing: 0.5px;"></span>
-
+                <span id="nombreUsuarioNav" style="color: var(--accent); font-weight: 600; font-family: var(--font-display); margin-right: 15px; letter-spacing: 0.5px;"></span>
                 <a href="favoritos.html" class="btn-nav">Favoritos</a>
                 <a href="historial.html" class="btn-nav">Historial</a>
-                <a href="#" class="btn-nav" id="btnNavAmigos">Amigos</a> <a href="index.html" class="btn-cerrar">Cerrar
-                    Sesión</a>
+                <a href="#" class="btn-nav" id="btnNavAmigos">Amigos</a> 
+                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
                 <div class="jam-dropdown-wrapper">
                     <button class="btn-jam-nav" id="btnAbrirJam">
                         <i class="fas fa-headphones"></i> Unirse a Jam
                     </button>
                     <div class="jam-dropdown" id="dropdownJam">
-                        <p class="jam-dropdown-title">
-                            <i class="fas fa-door-open"></i> Unirse a una Jam
-                        </p>
-                        <input class="jam-dropdown-input" type="text" id="inputCodigoJam"
-                               placeholder="Código de sala" maxlength="6">
-                        <input class="jam-dropdown-input" type="text" id="inputCodigoJam" placeholder="Código de sala"
-                            maxlength="6">
+                        <p class="jam-dropdown-title"><i class="fas fa-door-open"></i> Unirse a una Jam</p>
+                        <input class="jam-dropdown-input" type="text" id="inputCodigoJam" placeholder="Código de sala" maxlength="6">
                         <button class="jam-dropdown-btn" id="btnUnirse" disabled>Entrar</button>
                     </div>
                 </div>
@@ -57,35 +47,16 @@
             <div class="barra-busqueda" style="margin:0;">
                 <i class="fas fa-magnifying-glass" id="iconoBusqueda"></i>
                 <input type="text" id="inputBusqueda" placeholder="Buscar ciudad, país o estación" autocomplete="off">
-                <i class="fas fa-xmark" id="btnLimpiarBusqueda"
-                    style="cursor:pointer; display:none; color:var(--text-muted); transition:var(--transition);"></i>
+                <i class="fas fa-xmark" id="btnLimpiarBusqueda" style="cursor:pointer; display:none; color:var(--text-muted); transition:var(--transition);"></i>
             </div>
-            <div id="resultadosBusqueda" style="
-                display:none;
-                position:absolute;
-                top:calc(100% + 8px);
-                left:0; right:0;
-                background:var(--bg-glass);
-                backdrop-filter:blur(20px);
-                -webkit-backdrop-filter:blur(20px);
-                border:1px solid rgba(90,26,138,0.6);
-                border-radius:16px;
-                overflow:hidden;
-                box-shadow:0 8px 32px rgba(0,0,0,0.4);
-                z-index:1000;
-                max-height:340px;
-                overflow-y:auto;
-            "></div>
+            <div id="resultadosBusqueda" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:var(--bg-glass); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid rgba(90,26,138,0.6); border-radius:16px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.4); z-index:1000; max-height:340px; overflow-y:auto;"></div>
         </div>
 
         <section class="globo-seccion">
             <div id="globo-canvas"></div>
             <div style="display: flex; gap: 20px; align-items: center; margin-top: -5px;">
-                <p class="globo-hint">
-                    <i class="fas fa-hand-pointer"></i> Haz clic en un país para ver sus emisoras
-                </p>
-                <button id="btnFijarGlobo"
-                    style="background: transparent; border: 1px solid var(--purple-border); color: var(--text-secondary); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-family: var(--font-body); font-size: 12px; transition: var(--transition);">
+                <p class="globo-hint"><i class="fas fa-hand-pointer"></i> Haz clic en un país para ver sus emisoras</p>
+                <button id="btnFijarGlobo" style="background: transparent; border: 1px solid var(--purple-border); color: var(--text-secondary); padding: 4px 12px; border-radius: 20px; cursor: pointer; font-family: var(--font-body); font-size: 12px; transition: var(--transition);">
                     <i class="fas fa-unlock"></i> Rotación Activa
                 </button>
             </div>
@@ -94,13 +65,10 @@
         <div class="panel-emisoras" id="panel-emisoras">
             <div class="panel-header">
                 <h3 id="panel-pais">Emisoras</h3>
-                <button class="btn-cerrar-panel" id="panel-cerrar">
-                    <i class="fas fa-xmark"></i>
-                </button>
+                <button class="btn-cerrar-panel" id="panel-cerrar"><i class="fas fa-xmark"></i></button>
             </div>
             <div class="panel-loader" id="panel-loader">
-                <i class="fas fa-spinner fa-spin"></i>
-                <span>Cargando emisoras...</span>
+                <i class="fas fa-spinner fa-spin"></i><span>Cargando emisoras...</span>
             </div>
             <div class="lista-emisoras" id="panel-lista"></div>
         </div>
@@ -119,9 +87,7 @@
             </div>
             <div class="reproductor-acciones">
                 <button class="icono-btn" title="Favorito"><i class="fas fa-heart"></i></button>
-                <a href="jam.html">
-                    <button class="icono-btn" title="Jam"><i class="fas fa-user-group"></i></button>
-                </a>
+                <a href="jam.html"><button class="icono-btn" title="Jam"><i class="fas fa-user-group"></i></button></a>
             </div>
             <div class="reproductor-controles">
                 <button class="control-btn"><i class="fas fa-backward-step"></i></button>
@@ -137,63 +103,23 @@
         <div class="panel-historial" id="panelHistorial">
             <div class="panel-header">
                 <h3>Historial</h3>
-                <button class="btn-cerrar-panel" id="cerrarHistorial">
-                    <i class="fas fa-xmark"></i>
-                </button>
+                <button class="btn-cerrar-panel" id="cerrarHistorial"><i class="fas fa-xmark"></i></button>
             </div>
-            <div class="lista-item">
-                <div class="lista-info">
-                    <i class="fas fa-radio"></i>
-                    <div>
-                        <h3>Super 98.1 FM</h3>
-                        <p>Cuernavaca, México</p>
-                    </div>
-                </div>
-                <button class="control-btn"><i class="fas fa-play"></i></button>
-            </div>
-            <div class="lista-item">
-                <div class="lista-info">
-                    <i class="fas fa-radio"></i>
-                    <div>
-                        <h3>Radio Fórmula</h3>
-                        <p>Ciudad de México, México</p>
-                    </div>
-                </div>
-                <button class="control-btn"><i class="fas fa-play"></i></button>
-            </div>
-            <div class="lista-item">
-                <div class="lista-info">
-                    <i class="fas fa-radio"></i>
-                    <div>
-                        <h3>BBC Radio 1</h3>
-                        <p>Londres, Reino Unido</p>
-                    </div>
-                </div>
-                <button class="control-btn"><i class="fas fa-play"></i></button>
-            </div>
+            <div id="listaHistorialItems" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </div>
 
         <div class="panel-amigos" id="panelAmigos">
             <div class="panel-header">
                 <h3>Amigos</h3>
-                <button class="btn-cerrar-panel" id="cerrarAmigos">
-                    <i class="fas fa-xmark"></i>
-                </button>
+                <button class="btn-cerrar-panel" id="cerrarAmigos"><i class="fas fa-xmark"></i></button>
             </div>
             <div class="buscador-amigos">
                 <i class="fas fa-magnifying-glass"></i>
                 <input type="text" id="inputBuscarAmigo" placeholder="Buscar nuevos amigos...">
             </div>
-
-            <div id="resultadosBusquedaAmigos"
-                style="display:none; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
-
-            <h4
-                style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">
-                Mi Lista</h4>
-
-            <div class="lista-amigos" id="listaAmigos">
-            </div>
+            <div id="resultadosBusquedaAmigos" style="display:none; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
+            <h4 style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">Mi Lista</h4>
+            <div class="lista-amigos" id="listaAmigos"></div>
         </div>
     </main>
 
@@ -214,21 +140,89 @@
     <script src="globo.js"></script>
 
     <script>
-        // Historial
-        document.querySelector('a[href="historial.html"]').addEventListener('click', function (e) {
-            e.preventDefault();
-            document.getElementById('panelHistorial').classList.toggle('abierto');
-        });
-        document.getElementById('cerrarHistorial').addEventListener('click', () =>
-            document.getElementById('panelHistorial').classList.remove('abierto'));
+        // ── HISTORIAL Y FAVORITOS DIRECTOS A BD ──
+        const panelHistorial = document.getElementById('panelHistorial');
+        const contenedorHistorial = document.getElementById('listaHistorialItems');
 
-        // Mostrar nombre de usuario en el Navbar
+// ── HISTORIAL Y FAVORITOS (VERSIÓN ANTI-CACHÉ) ──
+        document.querySelector('a[href="historial.html"]').addEventListener('click', async function (e) {
+            e.preventDefault();
+            const panelHistorial = document.getElementById('panelHistorial');
+            const contenedor = document.getElementById('listaHistorialItems');
+            
+            panelHistorial.classList.toggle('abierto');
+            
+            if (panelHistorial.classList.contains('abierto')) {
+                contenedor.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px; margin-top:20px;"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>';
+                try {
+                    // Sello de tiempo para forzar al navegador a descargar datos nuevos
+                    const ts = Date.now();
+                    
+                    const [resHist, resFav] = await Promise.all([
+                        fetch(`backend/historial.php?accion=cargar&_t=${ts}`, { cache: "no-store" }).then(r => r.json()).catch(() => ({ok: false})),
+                        fetch(`backend/favoritos.php?accion=cargar&_t=${ts}`, { cache: "no-store" }).then(r => r.json()).catch(() => ({ok: false}))
+                    ]);
+                    
+                    if (resHist.ok) {
+                        contenedor.innerHTML = '';
+                        const historial = resHist.historial || [];
+                        const favoritos = resFav.ok && resFav.favoritos ? resFav.favoritos : [];
+
+                        if (historial.length === 0) {
+                            contenedor.innerHTML = '<p style="text-align:center; color:var(--text-muted); margin-top:20px;">Sin actividad reciente.</p>';
+                            return;
+                        }
+
+                        historial.forEach(item => {
+                            const nombre = item.Nombre || "Estación";
+                            const url = item.Stream_url || "";
+                            const ciudad = item.Ciudad || "Internacional";
+
+                            // Comparamos URLs para encender el corazón
+                            const esFav = favoritos.some(f => f.Stream_url === url);
+                            const heartStyle = esFav ? 'color: var(--accent); opacity: 1;' : 'color: rgba(255,255,255,0.2); opacity: 0.5;';
+
+                            const div = document.createElement('div');
+                            div.className = 'lista-item';
+                            div.innerHTML = `
+                                <div class="lista-info">
+                                    <i class="fas fa-radio" style="color:var(--accent);"></i>
+                                    <div>
+                                        <h3 style="font-size:14px; font-weight:600;">${nombre}</h3>
+                                        <p style="font-size:11px; color:var(--text-muted);">${ciudad}</p>
+                                    </div>
+                                </div>
+                                <div class="lista-acciones" style="display: flex; align-items: center; gap: 12px;">
+                                    <i class="fas fa-heart" style="${heartStyle} font-size: 16px;"></i>
+                                    <button class="control-btn play-historial" data-url="${url}" data-nombre="${nombre}" data-lugar="${ciudad}"><i class="fas fa-play"></i></button>
+                                </div>
+                            `;
+                            contenedor.appendChild(div);
+                        });
+
+                        document.querySelectorAll('.play-historial').forEach(btn => {
+                            btn.addEventListener('click', function(ev) {
+                                ev.stopPropagation();
+                                if (typeof window._reproducirGlobo === 'function') {
+                                    window._reproducirGlobo(this.dataset.url, this.dataset.nombre, this.dataset.lugar, this);
+                                }
+                            });
+                        });
+                    }
+                } catch(err) {
+                    contenedor.innerHTML = '<p style="color:red; text-align:center;">Error de conexión.</p>';
+                }
+            }
+        });
+
+        document.getElementById('cerrarHistorial').addEventListener('click', () => panelHistorial.classList.remove('abierto'));
+
         const usuarioLoggeado = sessionStorage.getItem('at_user');
         if (usuarioLoggeado) {
             document.getElementById('nombreUsuarioNav').textContent = '@' + usuarioLoggeado;
         }
 
-        // Dropdown Jam
+        // ── DROPDOWN Y UNIRSE A JAM ──
         const btnAbrir = document.getElementById('btnAbrirJam');
         const dropdown = document.getElementById('dropdownJam');
         const inputCod = document.getElementById('inputCodigoJam');
@@ -240,14 +234,10 @@
             if (dropdown.classList.contains('abierto')) inputCod.focus();
         });
         document.addEventListener('click', e => {
-            if (!dropdown.contains(e.target) && e.target !== btnAbrir)
-                dropdown.classList.remove('abierto');
+            if (!dropdown.contains(e.target) && e.target !== btnAbrir) dropdown.classList.remove('abierto');
         });
-        inputCod.addEventListener('input', () => {
-            btnEntrar.disabled = inputCod.value.trim().length !== 6;
-        });
+        inputCod.addEventListener('input', () => btnEntrar.disabled = inputCod.value.trim().length !== 6);
 
-        // Unirse a Jam (Invitado)
         btnEntrar.addEventListener('click', async () => {
             const codigo = inputCod.value.trim().toUpperCase();
             if (codigo.length === 6) {
@@ -264,6 +254,7 @@
                         sessionStorage.setItem('jam_estacion_nombre', data.estacion);
                         sessionStorage.setItem('jam_estacion_url', data.stream_url);
                         sessionStorage.setItem('jam_codigo', codigo);
+                        sessionStorage.setItem('jam_id', data.idJam || data.id || data.IdJam || codigo); 
                         sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
                         window.location.href = 'jam.html';
                     } else {
@@ -283,23 +274,16 @@
         const contenedorAmigos = document.getElementById('listaAmigos');
 
         document.getElementById('panelAmigos').addEventListener('transitionend', function (e) {
-            if (this.classList.contains('abierto') && e.propertyName === 'right') {
-                cargarAmigos();
-            }
+            if (this.classList.contains('abierto') && e.propertyName === 'right') cargarAmigos();
         });
 
-        document.getElementById('cerrarAmigos').addEventListener('click', () => {
-            document.getElementById('panelAmigos').classList.remove('abierto');
-        });
+        document.getElementById('cerrarAmigos').addEventListener('click', () => document.getElementById('panelAmigos').classList.remove('abierto'));
 
-        // Abrir panel desde la Navbar
         document.getElementById('btnNavAmigos').addEventListener('click', function (e) {
-            e.preventDefault();
-            e.stopPropagation();
+            e.preventDefault(); e.stopPropagation();
             document.getElementById('panelAmigos').classList.add('abierto');
         });
 
-        // EVITAR QUE EL MODAL CIERRE EL PANEL
         document.addEventListener('click', function (e) {
             const panelAmigos = document.getElementById('panelAmigos');
             const btnEnviar = document.querySelector('.icono-btn[title="Enviar"]');
@@ -307,11 +291,7 @@
             const modalCustom = document.getElementById('customModal');
 
             if (panelAmigos && panelAmigos.classList.contains('abierto')) {
-                // Si el clic NO fue dentro de ninguno de estos elementos, ciérralo
-                if (!panelAmigos.contains(e.target) &&
-                    (!btnEnviar || !btnEnviar.contains(e.target)) &&
-                    (!btnNavAmigos || !btnNavAmigos.contains(e.target)) &&
-                    (!modalCustom || !modalCustom.contains(e.target))) {
+                if (!panelAmigos.contains(e.target) && (!btnEnviar || !btnEnviar.contains(e.target)) && (!btnNavAmigos || !btnNavAmigos.contains(e.target)) && (!modalCustom || !modalCustom.contains(e.target))) {
                     panelAmigos.classList.remove('abierto');
                 }
             }
@@ -347,11 +327,9 @@
                     contenedorAmigos.appendChild(item);
                 });
 
-                // ENVIAR EMISORA DIRECTAMENTE AL AMIGO
                 document.querySelectorAll('.btn-invitar-jam').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         const amigoNombre = this.dataset.nombre;
-
                         if (!window.estacionActualData) {
                             alert("Primero selecciona una emisora del globo terráqueo para enviarla.");
                             return;
@@ -363,8 +341,7 @@
                         for (let i = 0; i < 6; i++) codigo += caracteres.charAt(Math.floor(Math.random() * caracteres.length));
 
                         try {
-                            // Crear la Jam en la BD
-                            await fetch('backend/jam.php?accion=crear', {
+                            const resCrear = await fetch('backend/jam.php?accion=crear', {
                                 method: 'POST',
                                 body: JSON.stringify({
                                     codigo: codigo,
@@ -373,21 +350,28 @@
                                     lugar: window.estacionActualData.lugar
                                 })
                             });
-                            // Enviar la invitación al amigo
+                            const dataCrear = await resCrear.json();
+                            
                             await fetch('backend/jam.php?accion=invitar', {
                                 method: 'POST',
                                 body: JSON.stringify({ codigo: codigo, amigo: amigoNombre })
                             });
 
-                            alert(`¡Emisora enviada a @${amigoNombre}! 🚀\n\nSi acepta la invitación, puedes unirte a escuchar con él desde el menú superior con el código:\n\n${codigo}`);
+                            sessionStorage.setItem('jam_estacion_nombre', window.estacionActualData.nombre);
+                            sessionStorage.setItem('jam_estacion_url', window.estacionActualData.url);
+                            sessionStorage.setItem('jam_codigo', codigo);
+                            sessionStorage.setItem('jam_id', dataCrear.idJam || dataCrear.id || dataCrear.IdJam || codigo); 
+                            sessionStorage.setItem('jam_estacion_lugar', window.estacionActualData.lugar || 'Internacional');
+
+                            alert(`¡Invitación enviada a @${amigoNombre}! 🚀\n\nEntrando a la sala Jam...`);
+                            window.location.href = 'jam.html';
                         } catch (err) {
                             alert("Error al enviar la invitación.");
+                            this.innerHTML = '<i class="fas fa-headphones"></i>';
                         }
-                        this.innerHTML = '<i class="fas fa-headphones"></i>';
                     });
                 });
 
-                // Botón de eliminar
                 document.querySelectorAll('.btn-eliminar-amigo').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         if (confirm('¿Seguro que quieres eliminar a este amigo?')) {
@@ -405,20 +389,13 @@
             }
         }
 
-        // Buscar amigos
         inputBuscarAmigo.addEventListener('input', async function () {
             const q = this.value.trim().replace('@', '');
-            if (q.length < 2) {
-                cajaResultados.style.display = 'none';
-                return;
-            }
-
+            if (q.length < 2) { cajaResultados.style.display = 'none'; return; }
             const res = await fetch(`backend/amigos.php?accion=buscar&q=${encodeURIComponent(q)}`);
             const data = await res.json();
-
             cajaResultados.innerHTML = '';
             cajaResultados.style.display = 'flex';
-
             if (data.resultados.length > 0) {
                 data.resultados.forEach(u => {
                     cajaResultados.innerHTML += `
@@ -428,7 +405,6 @@
                         </div>
                     `;
                 });
-
                 document.querySelectorAll('.btn-agregar-amigo').forEach(btn => {
                     btn.addEventListener('click', async function () {
                         await fetch('backend/amigos.php?accion=agregar', {
@@ -446,19 +422,16 @@
             }
         });
 
-        // Volumen
         document.getElementById('rep-volumen').addEventListener('input', function () {
             if (window._audGlobo) window._audGlobo.volume = this.value / 100;
         });
 
-        // ── LÓGICA DEL POP-UP PERSONALIZADO ──
         const modal = document.getElementById('customModal');
         const modalTit = document.getElementById('modalTitulo');
         const modalTxt = document.getElementById('modalTexto');
         const btnOk = document.getElementById('modalBtnOk');
         const btnCancel = document.getElementById('modalBtnCancel');
 
-        // Reescribir window.alert
         window.alert = function (mensaje) {
             modalTit.textContent = "Audio Traveler";
             modalTxt.textContent = mensaje;
@@ -468,55 +441,74 @@
             btnOk.onclick = () => modal.classList.remove('activo');
         };
 
-        // Custom confirm para la invitación
         function mostrarConfirmacion(titulo, mensaje, onOk, onCancel) {
-            modalTit.textContent = titulo;
-            modalTxt.textContent = mensaje;
-            btnCancel.style.display = "block";
-            btnOk.textContent = "¡Unirme!";
-            modal.classList.add('activo');
+                    modalTit.textContent = titulo;
+                    modalTxt.textContent = mensaje;
+                    btnCancel.style.display = "block";
+                    btnOk.textContent = "¡Unirme!";
+                    modal.classList.add('activo');
 
-            btnOk.onclick = () => { modal.classList.remove('activo'); onOk(); };
-            btnCancel.onclick = () => { modal.classList.remove('activo'); if (onCancel) onCancel(); };
-        }
+                    // Temporizador de 1 minuto (60,000 ms) para auto-rechazar
+                    let timeout = setTimeout(() => {
+                        if(modal.classList.contains('activo')) {
+                            modal.classList.remove('activo');
+                            if (onCancel) onCancel(); // Rechaza automáticamente en la BD
+                        }
+                    }, 60000);
 
-        // ── BUSCADOR DE INVITACIONES (POLLING) ──
+                    btnOk.onclick = () => { 
+                        clearTimeout(timeout); // Cancela el temporizador si da click
+                        modal.classList.remove('activo'); 
+                        onOk(); 
+                    };
+                    
+                    btnCancel.onclick = () => { 
+                        clearTimeout(timeout); // Cancela el temporizador si da click
+                        modal.classList.remove('activo'); 
+                        if (onCancel) onCancel(); 
+                    };
+                }
+
+        const invitacionesYaMostradas = []; 
+
         setInterval(async () => {
             try {
                 const res = await fetch('backend/jam.php?accion=revisar');
                 const data = await res.json();
                 if (data.ok && data.invitacion) {
                     const inv = data.invitacion;
-                    mostrarConfirmacion(
-                        "¡Te invitaron a escuchar juntos! 🎧",
-                        `@${inv.Remitente} te envió la emisora ${inv.Estacion}. ¿Quieres unirte a su sala?`,
-                        async () => {
-                            await fetch('backend/jam.php?accion=responder', {
-                                method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Aceptada' })
-                            });
-                            const r = await fetch('backend/jam.php?accion=unirse', {
-                                method: 'POST', body: JSON.stringify({ codigo: inv.Codigo })
-                            });
-                            const d = await r.json();
-                            if (d.ok) {
-                                sessionStorage.setItem('jam_estacion_nombre', d.estacion);
-                                sessionStorage.setItem('jam_estacion_url', d.stream_url);
-                                sessionStorage.setItem('jam_codigo', inv.Codigo);
-                                sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
-                                window.location.href = 'jam.html';
+                    if (!invitacionesYaMostradas.includes(inv.IdInvitacion)) {
+                        invitacionesYaMostradas.push(inv.IdInvitacion);
+                        mostrarConfirmacion(
+                            "¡Te invitaron a escuchar juntos! 🎧",
+                            `@${inv.Remitente} te envió la emisora ${inv.Estacion}. ¿Quieres unirte a su sala?`,
+                            async () => {
+                                await fetch('backend/jam.php?accion=responder', {
+                                    method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Aceptada' })
+                                });
+                                const r = await fetch('backend/jam.php?accion=unirse', {
+                                    method: 'POST', body: JSON.stringify({ codigo: inv.Codigo })
+                                });
+                                const d = await r.json();
+                                if (d.ok) {
+                                    sessionStorage.setItem('jam_estacion_nombre', d.estacion);
+                                    sessionStorage.setItem('jam_estacion_url', d.stream_url);
+                                    sessionStorage.setItem('jam_codigo', inv.Codigo);
+                                    sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
+                                    window.location.href = 'jam.html';
+                                }
+                            },
+                            async () => {
+                                await fetch('backend/jam.php?accion=responder', {
+                                    method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Rechazada' })
+                                });
                             }
-                        },
-                        async () => {
-                            await fetch('backend/jam.php?accion=responder', {
-                                method: 'POST', body: JSON.stringify({ idInvitacion: inv.IdInvitacion, estado: 'Rechazada' })
-                            });
-                        }
-                    );
+                        );
+                    }
                 }
             } catch (e) { }
         }, 5000);
 
-        // ── BARRA DE BÚSQUEDA DE EMISORAS ──
         (function () {
             const RADIO_API = 'https://de1.api.radio-browser.info/json';
             const inputBusqueda = document.getElementById('inputBusqueda');
@@ -528,89 +520,61 @@
 
             function mostrarCarga() {
                 cajaBusqueda.style.display = 'block';
-                cajaBusqueda.innerHTML = `
-                    <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">
-                        <i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Buscando emisoras...
-                    </div>`;
-                iconoBusq.className = 'fas fa-spinner fa-spin';
-                iconoBusq.style.color = 'var(--accent)';
+                cajaBusqueda.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Buscando emisoras...</div>`;
+                iconoBusq.className = 'fas fa-spinner fa-spin'; iconoBusq.style.color = 'var(--accent)';
             }
 
             function ocultarResultados() {
-                cajaBusqueda.style.display = 'none';
-                cajaBusqueda.innerHTML = '';
-                iconoBusq.className = 'fas fa-magnifying-glass';
-                iconoBusq.style.color = '';
+                cajaBusqueda.style.display = 'none'; cajaBusqueda.innerHTML = '';
+                iconoBusq.className = 'fas fa-magnifying-glass'; iconoBusq.style.color = '';
             }
 
             function renderizarResultados(estaciones) {
-                iconoBusq.className = 'fas fa-magnifying-glass';
-                iconoBusq.style.color = '';
-
+                iconoBusq.className = 'fas fa-magnifying-glass'; iconoBusq.style.color = '';
                 if (!estaciones || estaciones.length === 0) {
-                    cajaBusqueda.innerHTML = `
-                        <div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;">
-                            <i class="fas fa-radio" style="display:block; font-size:22px; margin-bottom:8px; opacity:0.4;"></i>
-                            No se encontraron emisoras
-                        </div>`;
+                    cajaBusqueda.innerHTML = `<div style="padding:20px; text-align:center; color:var(--text-muted); font-size:13px;"><i class="fas fa-radio" style="display:block; font-size:22px; margin-bottom:8px; opacity:0.4;"></i>No se encontraron emisoras</div>`;
                     return;
                 }
 
                 cajaBusqueda.innerHTML = '';
                 estaciones.slice(0, 12).forEach((st, i) => {
                     const item = document.createElement('div');
-                    item.style.cssText = `
-                        display:flex; align-items:center; gap:12px;
-                        padding:12px 16px; cursor:pointer;
-                        border-bottom:${i < Math.min(estaciones.length, 12) - 1 ? '1px solid rgba(90,26,138,0.25)' : 'none'};
-                        transition:background 0.15s;
-                    `;
+                    item.style.cssText = `display:flex; align-items:center; gap:12px; padding:12px 16px; cursor:pointer; border-bottom:${i < Math.min(estaciones.length, 12) - 1 ? '1px solid rgba(90,26,138,0.25)' : 'none'}; transition:background 0.15s;`;
                     item.onmouseenter = () => item.style.background = 'rgba(255,255,255,0.06)';
                     item.onmouseleave = () => item.style.background = 'transparent';
 
-                    const pais = st.country || 'Internacional';
-                    const ciudad = st.state ? `${st.state}, ${pais}` : pais;
-                    const favicon = st.favicon;
-
+                    const pais = st.country || 'Internacional'; const ciudad = st.state ? `${st.state}, ${pais}` : pais; const favicon = st.favicon;
                     item.innerHTML = `
                         <div style="width:34px; height:34px; border-radius:8px; background:rgba(90,26,138,0.3); border:1px solid rgba(90,26,138,0.4); display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden;">
-                            ${favicon
-                            ? `<img src="${favicon}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-radio\\' style=\\'font-size:14px;color:var(--accent);\\'></i>'">`
-                            : `<i class="fas fa-radio" style="font-size:14px; color:var(--accent);"></i>`}
+                            ${favicon ? `<img src="${favicon}" style="width:100%;height:100%;object-fit:cover;border-radius:7px;" onerror="this.parentElement.innerHTML='<i class=\\'fas fa-radio\\' style=\\'font-size:14px;color:var(--accent);\\'></i>'">` : `<i class="fas fa-radio" style="font-size:14px; color:var(--accent);"></i>`}
                         </div>
                         <div style="flex:1; min-width:0;">
                             <div style="color:var(--text-primary); font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${st.name}</div>
                             <div style="color:var(--text-muted); font-size:11px; margin-top:2px;">${ciudad}</div>
                         </div>
-                        <button style="background:var(--accent); border:none; color:var(--bg-dark); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:11px; transition:var(--transition);" title="Reproducir">
-                            <i class="fas fa-play"></i>
-                        </button>
+                        <button style="background:var(--accent); border:none; color:var(--bg-dark); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; font-size:11px; transition:var(--transition);" title="Reproducir"><i class="fas fa-play"></i></button>
                     `;
 
                     const btnPlay = item.querySelector('button');
                     const accionReproducir = () => {
                         if (window._audGlobo && st.url_resolved) {
-                            // Reutilizar la función reproducir de globo.js si está disponible
                             if (typeof window._reproducirGlobo === 'function') {
                                 window._reproducirGlobo(st.url_resolved, st.name, ciudad, btnPlay);
                             } else {
-                                // Fallback directo
-                                window._audGlobo.src = st.url_resolved;
-                                window._audGlobo.play().catch(() => { });
+                                window._audGlobo.src = st.url_resolved; window._audGlobo.play().catch(() => { });
                                 window.estacionActualData = { nombre: st.name, url: st.url_resolved, lugar: ciudad };
-                                const elNombre = document.getElementById('rep-nombre');
-                                const elLugar = document.getElementById('rep-lugar');
-                                const elBtn = document.getElementById('rep-playpause');
-                                if (elNombre) elNombre.textContent = st.name;
-                                if (elLugar) elLugar.textContent = ciudad;
-                                if (elBtn) elBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                                const elNombre = document.getElementById('rep-nombre'); const elLugar = document.getElementById('rep-lugar'); const elBtn = document.getElementById('rep-playpause');
+                                if (elNombre) elNombre.textContent = st.name; if (elLugar) elLugar.textContent = ciudad; if (elBtn) elBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                                
+                                // --- REGISTRO DIRECTO A TU BASE DE DATOS (HISTORIAL BÚSQUEDA) ---
+                                fetch('backend/historial.php?accion=registrar', {
+                                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ nombre: st.name, streamUrl: st.url_resolved, lugar: ciudad })
+                                }).catch(()=>{});
                             }
-                            btnPlay.innerHTML = '<i class="fas fa-pause"></i>';
-                            btnPlay.style.background = '#1cf00c';
+                            btnPlay.innerHTML = '<i class="fas fa-pause"></i>'; btnPlay.style.background = '#1cf00c';
                         }
-                        ocultarResultados();
-                        inputBusqueda.value = st.name;
-                        btnLimpiar.style.display = 'block';
+                        ocultarResultados(); inputBusqueda.value = st.name; btnLimpiar.style.display = 'block';
                     };
 
                     btnPlay.addEventListener('click', e => { e.stopPropagation(); accionReproducir(); });
@@ -619,162 +583,85 @@
                 });
             }
 
-            // Mapa de países en español → código ISO y nombre en inglés
-            const PAISES = {
-                // América
-                "mexico": "MX", "mejico": "MX",
-                "estados unidos": "US", "usa": "US", "united states": "US",
-                "canada": "CA", "canadá": "CA",
-                "argentina": "AR", "brasil": "BR", "brazil": "BR",
-                "colombia": "CO", "chile": "CL", "peru": "PE", "perú": "PE",
-                "venezuela": "VE", "ecuador": "EC", "bolivia": "BO",
-                "paraguay": "PY", "uruguay": "UY", "cuba": "CU",
-                "costa rica": "CR", "panama": "PA", "panamá": "PA",
-                "guatemala": "GT", "honduras": "HN", "el salvador": "SV",
-                "nicaragua": "NI", "republica dominicana": "DO", "república dominicana": "DO",
-                "puerto rico": "PR", "haiti": "HT", "haití": "HT",
-                // Europa
-                "españa": "ES", "espana": "ES", "spain": "ES",
-                "francia": "FR", "france": "FR",
-                "alemania": "DE", "germany": "DE",
-                "italia": "IT", "italy": "IT",
-                "reino unido": "GB", "uk": "GB", "england": "GB", "inglaterra": "GB",
-                "portugal": "PT", "holanda": "NL", "netherlands": "NL", "países bajos": "NL",
-                "belgica": "BE", "bélgica": "BE", "belgium": "BE",
-                "suiza": "CH", "switzerland": "CH",
-                "suecia": "SE", "sweden": "SE",
-                "noruega": "NO", "norway": "NO",
-                "dinamarca": "DK", "denmark": "DK",
-                "finlandia": "FI", "finland": "FI",
-                "polonia": "PL", "poland": "PL",
-                "austria": "AT", "grecia": "GR", "greece": "GR",
-                "turquia": "TR", "turquía": "TR", "turkey": "TR",
-                "rusia": "RU", "russia": "RU",
-                "ucrania": "UA", "ukraine": "UA",
-                "rumania": "RO", "romania": "RO",
-                "hungria": "HU", "hungría": "HU", "hungary": "HU",
-                "republica checa": "CZ", "república checa": "CZ", "czech republic": "CZ",
-                "eslovaquia": "SK", "croatia": "HR", "croacia": "HR",
-                "serbia": "RS", "bulgaria": "BG", "eslovenia": "SI",
-                // Asia
-                "china": "CN", "japon": "JP", "japón": "JP", "japan": "JP",
-                "corea del sur": "KR", "corea": "KR", "korea": "KR", "south korea": "KR",
-                "corea del norte": "KP", "north korea": "KP",
-                "india": "IN", "indonesia": "ID", "filipinas": "PH", "philippines": "PH",
-                "tailandia": "TH", "thailand": "TH", "vietnam": "VN", "malasia": "MY", "malaysia": "MY",
-                "singapur": "SG", "singapore": "SG", "pakistan": "PK", "pakistán": "PK",
-                "bangladesh": "BD", "iran": "IR", "irak": "IQ", "iraq": "IQ",
-                "arabia saudita": "SA", "saudi arabia": "SA",
-                "emiratos arabes unidos": "AE", "uae": "AE",
-                "israel": "IL", "libano": "LB", "líbano": "LB",
-                // África
-                "sudafrica": "ZA", "sud africa": "ZA", "south africa": "ZA",
-                "egipto": "EG", "egypt": "EG", "nigeria": "NG", "kenia": "KE", "kenya": "KE",
-                "etiopia": "ET", "etiopía": "ET", "ghana": "GH", "tanzania": "TZ",
-                "marruecos": "MA", "morocco": "MA", "argelia": "DZ", "algeria": "DZ",
-                "tunez": "TN", "túnez": "TN", "tunisia": "TN",
-                // Oceanía
-                "australia": "AU", "nueva zelanda": "NZ", "new zealand": "NZ",
-            };
+            const PAISES = { "mexico": "MX", "estados unidos": "US", "canada": "CA", "argentina": "AR", "brasil": "BR", "colombia": "CO", "chile": "CL", "peru": "PE", "españa": "ES", "francia": "FR", "alemania": "DE", "italia": "IT", "reino unido": "GB", "japon": "JP" };
             async function buscar(query) {
                 if (controladorBusqueda) controladorBusqueda.abort();
                 controladorBusqueda = new AbortController();
                 const sig = controladorBusqueda.signal;
-
-                const queryNorm = query.trim().toLowerCase()
-                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-
+                const queryNorm = query.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 mostrarCarga();
                 try {
-                    const enc = encodeURIComponent(query.trim());
-                    const encN = encodeURIComponent(queryNorm);
-                    const base = `limit=20&hidebroken=true&order=votes&reverse=true`;
-
-                    // Detectar si coincide con un país del mapa
+                    const enc = encodeURIComponent(query.trim()); const encN = encodeURIComponent(queryNorm); const base = `limit=20&hidebroken=true&order=votes&reverse=true`;
                     const claveEncontrada = Object.keys(PAISES).find(p => queryNorm === p || queryNorm.includes(p));
                     const codigoPais = claveEncontrada ? PAISES[claveEncontrada] : null;
-
-                    // Todas las búsquedas en paralelo
-                    const urls = [
-                        `${RADIO_API}/stations/search?name=${enc}&${base}`,
-                        `${RADIO_API}/stations/bystate/${enc}?${base}`,
-                        `${RADIO_API}/stations/bystate/${encN}?${base}`,
-                        `${RADIO_API}/stations/bycountry/${enc}?${base}`,
-                        `${RADIO_API}/stations/bycountry/${encN}?${base}`,
-                    ];
-
-                    // Si detectamos país exacto, búsqueda por código ISO (la más confiable) va primero
-                    if (codigoPais) {
-                        urls.unshift(`${RADIO_API}/stations/bycountrycodeexact/${codigoPais}?${base}`);
-                    }
-
-                    const respuestas = await Promise.allSettled(
-                        urls.map(u => fetch(u, { signal: sig }).then(r => r.json()).catch(() => []))
-                    );
-
-                    // Aplanar y deduplicar por stationuuid
+                    const urls = [ `${RADIO_API}/stations/search?name=${enc}&${base}`, `${RADIO_API}/stations/bystate/${enc}?${base}`, `${RADIO_API}/stations/bystate/${encN}?${base}`, `${RADIO_API}/stations/bycountry/${enc}?${base}`, `${RADIO_API}/stations/bycountry/${encN}?${base}` ];
+                    if (codigoPais) urls.unshift(`${RADIO_API}/stations/bycountrycodeexact/${codigoPais}?${base}`);
+                    const respuestas = await Promise.allSettled(urls.map(u => fetch(u, { signal: sig }).then(r => r.json()).catch(() => [])));
                     const vistos = new Set();
-                    const combinados = respuestas
-                        .flatMap(r => r.status === 'fulfilled' ? (Array.isArray(r.value) ? r.value : []) : [])
-                        .filter(st => {
-                            if (!st || !st.stationuuid || vistos.has(st.stationuuid)) return false;
-                            vistos.add(st.stationuuid);
-                            return true;
-                        });
-
+                    const combinados = respuestas.flatMap(r => r.status === 'fulfilled' ? (Array.isArray(r.value) ? r.value : []) : []).filter(st => { if (!st || !st.stationuuid || vistos.has(st.stationuuid)) return false; vistos.add(st.stationuuid); return true; });
                     renderizarResultados(combinados);
                 } catch (err) {
                     if (err.name !== 'AbortError') {
-                        cajaBusqueda.innerHTML = `
-                            <div style="padding:16px; text-align:center; color:#ff6b6b; font-size:13px;">
-                                <i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>Error al buscar. Intenta de nuevo.
-                            </div>`;
-                        iconoBusq.className = 'fas fa-magnifying-glass';
-                        iconoBusq.style.color = '';
+                        cajaBusqueda.innerHTML = `<div style="padding:16px; text-align:center; color:#ff6b6b; font-size:13px;"><i class="fas fa-triangle-exclamation" style="margin-right:6px;"></i>Error al buscar. Intenta de nuevo.</div>`;
+                        iconoBusq.className = 'fas fa-magnifying-glass'; iconoBusq.style.color = '';
                     }
                 }
             }
 
             inputBusqueda.addEventListener('input', function () {
-                const q = this.value.trim();
-                btnLimpiar.style.display = q ? 'block' : 'none';
-                clearTimeout(timerBusqueda);
-                if (!q) { ocultarResultados(); return; }
-                if (q.length < 2) return;
-                timerBusqueda = setTimeout(() => buscar(q), 400);
+                const q = this.value.trim(); btnLimpiar.style.display = q ? 'block' : 'none'; clearTimeout(timerBusqueda);
+                if (!q) { ocultarResultados(); return; } if (q.length < 2) return; timerBusqueda = setTimeout(() => buscar(q), 400);
             });
-
             inputBusqueda.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter') {
-                    clearTimeout(timerBusqueda);
-                    const q = this.value.trim();
-                    if (q.length >= 2) buscar(q);
-                }
+                if (e.key === 'Enter') { clearTimeout(timerBusqueda); const q = this.value.trim(); if (q.length >= 2) buscar(q); }
                 if (e.key === 'Escape') { ocultarResultados(); this.blur(); }
             });
-
-            btnLimpiar.addEventListener('click', () => {
-                inputBusqueda.value = '';
-                btnLimpiar.style.display = 'none';
-                ocultarResultados();
-                inputBusqueda.focus();
-            });
-
-            // Cerrar al hacer click fuera
-            document.addEventListener('click', e => {
-                const wrapper = document.querySelector('.barra-busqueda-wrapper');
-                if (wrapper && !wrapper.contains(e.target)) ocultarResultados();
-            });
+            btnLimpiar.addEventListener('click', () => { inputBusqueda.value = ''; btnLimpiar.style.display = 'none'; ocultarResultados(); inputBusqueda.focus(); });
+            document.addEventListener('click', e => { const wrapper = document.querySelector('.barra-busqueda-wrapper'); if (wrapper && !wrapper.contains(e.target)) ocultarResultados(); });
         })();
 
-        // Cerrar sesión
         document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
             a.addEventListener('click', function (e) {
-                e.preventDefault();
-                sessionStorage.removeItem('at_logged');
-                sessionStorage.removeItem('at_user');
-                window.location.href = 'index.html';
+                e.preventDefault(); sessionStorage.removeItem('at_logged'); sessionStorage.removeItem('at_user'); window.location.href = 'index.html';
             });
+        });
+    </script>
+    <script>
+        // SCRIPT PARA CERRAR PANELES AL DAR CLIC FUERA
+        document.addEventListener('click', function(e) {
+            
+            // 1. Panel Historial
+            const pHist = document.getElementById('panelHistorial');
+            const btnHist = document.querySelector('a[href="historial.html"]');
+            
+            if (pHist && pHist.classList.contains('abierto')) {
+                // Si el clic no fue dentro del panel, ni en el botón que lo abre
+                if (!pHist.contains(e.target) && (!btnHist || !btnHist.contains(e.target))) {
+                    pHist.classList.remove('abierto');
+                }
+            }
+
+            // 2. Panel Emisoras (El del Globo)
+            const pEmi = document.getElementById('panel-emisoras');
+            const canvasGlobo = document.getElementById('globo-canvas');
+            
+            if (pEmi && pEmi.classList.contains('abierto')) {
+                if (!pEmi.contains(e.target) && (!canvasGlobo || !canvasGlobo.contains(e.target))) {
+                    pEmi.classList.remove('abierto');
+                    // Pausar audio si se quedó reproduciendo una emisora sin seleccionar
+                    if (window._audGlobo) window._audGlobo.pause(); 
+                }
+            }
+            
+            // 3. Panel Amigos
+            const pAmi = document.getElementById('panelAmigos');
+            const btnAmi = document.querySelector('.icono-btn[title="Amigos"]'); 
+            
+            if (pAmi && pAmi.classList.contains('abierto')) {
+                if (!pAmi.contains(e.target) && (!btnAmi || !btnAmi.contains(e.target))) {
+                    pAmi.classList.remove('abierto');
+                }
+            }
         });
     </script>
 </body>
