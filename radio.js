@@ -100,16 +100,19 @@ function reproducir(url, nombre, lugar) {
             const elNombre = document.getElementById('rep-nombre');
             if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
             console.log('No se pudo conectar:', e);
+            // AGREGAMOS ESTA LÍNEA:
+            alert('Lo sentimos, la estación seleccionada no está disponible en este momento.'); 
         });
     } else {
         // Fallback para navegadores que no devuelven Promise
         aud.onerror = () => {
             const elNombre = document.getElementById('rep-nombre');
             if (elNombre) elNombre.textContent = '❗ Esta estación no está disponible';
+            // AGREGAMOS ESTA LÍNEA:
+            alert('Lo sentimos, la estación seleccionada no está disponible en este momento.');
         };
     }
 
-    return promesa || true;
 }
 
 function detener() {

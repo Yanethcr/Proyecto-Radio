@@ -392,6 +392,44 @@
     cargarEmisoras(obj.code, obj.name);
   });
 
+  // --- EVENTOS TÁCTILES PARA MÓVILES ---
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchMovido = false;
+
+  renderer.domElement.addEventListener('touchstart', e => {
+    // Tomamos el primer dedo que toca la pantalla
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchMovido = false;
+  }, { passive: true });
+
+  renderer.domElement.addEventListener('touchmove', e => {
+    const touch = e.touches[0];
+    // Damos una tolerancia de 10 píxeles. 
+    // Si el dedo se mueve más de 10px, asumimos que el usuario está girando el globo, no haciendo clic.
+    if (Math.abs(touch.clientX - touchStartX) > 10 || Math.abs(touch.clientY - touchStartY) > 10) {
+      touchMovido = true;
+    }
+  }, { passive: true });
+
+  renderer.domElement.addEventListener('touchend', e => {
+    if (touchMovido) return; // Si arrastró el dedo para girar, ignoramos el toque
+    
+    // Al levantar el dedo, 'touches' se vacía. Por eso usamos 'changedTouches'
+    const touch = e.changedTouches[0];
+    
+    // getHit necesita un objeto que tenga clientX y clientY, ¡el objeto touch los tiene!
+    const obj = getHit(touch); 
+    if (!obj) return;
+    
+    if (selectedCountry && selectedCountry !== obj) setMat(selectedCountry, MAT_DEFAULT);
+    selectedCountry = obj;
+    setMat(obj, MAT_SELECTED);
+    cargarEmisoras(obj.code, obj.name);
+  });
+
   async function cargarEmisoras(code, name) {
     panel.classList.add('abierto');
     panelTitulo.textContent   = name || code || 'País';
