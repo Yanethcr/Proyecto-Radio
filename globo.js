@@ -187,13 +187,21 @@
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setSize(W(), H());
   renderer.setClearColor(0x000000, 0);
   container.appendChild(renderer.domElement);
 
   const scene  = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(45, W() / H(), 0.1, 100);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
   camera.position.set(0, 0, 2.8);
+
+  // Función para sincronizar tamaño del renderer con el contenedor real
+  function syncSize() {
+    const w = container.clientWidth  || container.offsetWidth  || 500;
+    const h = container.clientHeight || container.offsetHeight || 500;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
   const sun = new THREE.DirectionalLight(0xffffff, 1.0);
@@ -283,8 +291,15 @@
 
   let pointerStartX = 0; let pointerStartY = 0; let pointerMovido = false;
 
+  // touch-action:none permite que pointer events funcionen en móvil sin que el scroll los intercepte
+  renderer.domElement.style.touchAction = 'none';
+
   renderer.domElement.addEventListener('pointerdown', e => {
+    // Detección de click vs drag
     pointerMovido = false; pointerStartX = e.clientX; pointerStartY = e.clientY;
+    // Inicio de arrastre
+    isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 };
+    renderer.domElement.style.cursor = 'grabbing'; renderer.domElement.setPointerCapture(e.pointerId);
   });
 
   renderer.domElement.addEventListener('pointermove', e => {
@@ -339,10 +354,7 @@
       });
   }
 
-  renderer.domElement.addEventListener('pointerdown', e => { 
-      isDragging = true; autoRotate = false; prev = { x: e.clientX, y: e.clientY }; vel = { x: 0, y: 0 }; 
-      renderer.domElement.style.cursor = 'grabbing'; renderer.domElement.setPointerCapture(e.pointerId);
-  });
+
   window.addEventListener('pointermove', e => { 
       if (!isDragging) return; vel = { x: (e.clientY - prev.y) * 0.003, y: (e.clientX - prev.x) * 0.003 }; 
       globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; prev = { x: e.clientX, y: e.clientY }; 
@@ -352,7 +364,12 @@
       if (e.target === renderer.domElement) renderer.domElement.releasePointerCapture(e.pointerId);
   });
 
-  window.addEventListener('resize', () => { camera.aspect = W() / H(); camera.updateProjectionMatrix(); renderer.setSize(W(), H()); });
+  window.addEventListener('resize', syncSize);
+
+  // ResizeObserver: detecta cuando el contenedor cambia de tamaño (cambio de orientación, etc.)
+  if (window.ResizeObserver) {
+    new ResizeObserver(syncSize).observe(container);
+  }
 
   function animate() {
     requestAnimationFrame(animate);
@@ -360,7 +377,22 @@
     else if (!isDragging) { vel.x *= 0.93; vel.y *= 0.93; globeGroup.rotation.x += vel.x; globeGroup.rotation.y += vel.y; }
     renderer.render(scene, camera);
   }
-  animate();
+  // Diferir el primer render hasta que el navegador termine el layout.
+  // Usamos doble-RAF + fallback de 200 ms para garantizar que el contenedor
+  // ya tenga dimensiones reales en móvil antes de llamar syncSize().
+  function iniciarGlobo() {
+    syncSize();
+    animate();
+  }
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      if (container.clientWidth > 0) {
+        iniciarGlobo();
+      } else {
+        setTimeout(iniciarGlobo, 200);
+      }
+    });
+  });
 
   window._reproducirGlobo = reproducir;
 })();

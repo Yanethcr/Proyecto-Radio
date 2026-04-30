@@ -31,7 +31,7 @@ if ($accion === "crear") {
     $pdo->prepare("INSERT INTO Jam (IdEstacion, IdCreador, Codigo, Estado, FechaInicio) VALUES (?, ?, ?, 'Activa', NOW())")->execute([$idEstacion, $idUsuario, $codigo]);
     $idJam = $pdo->lastInsertId();
 
-    $pdo->prepare("INSERT INTO JamUsuario (IdJam, IdUsuario, Rol) VALUES (?, ?, 'Host')")->execute([$idJam, $idUsuario]);
+    $pdo->prepare("INSERT INTO JamUsuario (IdJam, IdUsuario, Rol, UltimoHeartbeat) VALUES (?, ?, 'Host', NOW())")->execute([$idJam, $idUsuario]);
 
     echo json_encode(["ok" => true, "idJam" => $idJam]);
     exit;
@@ -51,7 +51,11 @@ if ($accion === "unirse") {
         exit;
     }
 
-    $pdo->prepare("INSERT IGNORE INTO JamUsuario (IdJam, IdUsuario, Rol) VALUES (?, ?, 'Invitado')")->execute([$jam["IdJam"], $idUsuario]);
+    // Eliminar registro anterior si existe (evita duplicados al re-unirse)
+    $pdo->prepare("DELETE FROM JamUsuario WHERE IdJam = ? AND IdUsuario = ?")->execute([$jam["IdJam"], $idUsuario]);
+    // Insertar fresco con heartbeat actual
+    $pdo->prepare("INSERT INTO JamUsuario (IdJam, IdUsuario, Rol, UltimoHeartbeat) VALUES (?, ?, 'Invitado', NOW())")->execute([$jam["IdJam"], $idUsuario]);
+
     echo json_encode(["ok" => true, "estacion" => $jam["Nombre"], "stream_url" => $jam["Stream_url"], "idJam" => $jam["IdJam"]]);
     exit;
 }
@@ -110,7 +114,7 @@ if ($accion === "responder") {
     exit;
 }
 
-// LISTAR USUARIOS EN LA SALA
+// LISTAR USUARIOS EN LA SALA (solo los activos en los últimos 20 segundos)
 if ($accion === "usuarios") {
     $codigo = $_GET["codigo"] ?? "";
     $stmt = $pdo->prepare("
@@ -119,10 +123,42 @@ if ($accion === "usuarios") {
         JOIN Usuarios u ON ju.IdUsuario = u.IdUsuario
         JOIN Jam j ON ju.IdJam = j.IdJam
         WHERE j.Codigo = ? AND j.Estado = 'Activa'
+        AND ju.UltimoHeartbeat >= NOW() - INTERVAL 20 SECOND
     ");
     $stmt->execute([$codigo]);
     $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
     echo json_encode(["ok" => true, "usuarios" => $usuarios]);
+    exit;
+}
+
+// HEARTBEAT — mantiene al usuario "vivo" en la sala
+if ($accion === "heartbeat") {
+    $codigo = $_GET["codigo"] ?? "";
+    $stmt = $pdo->prepare("
+        UPDATE JamUsuario ju
+        JOIN Jam j ON ju.IdJam = j.IdJam
+        SET ju.UltimoHeartbeat = NOW()
+        WHERE j.Codigo = ? AND ju.IdUsuario = ?
+    ");
+    $stmt->execute([$codigo, $idUsuario]);
+    echo json_encode(["ok" => true]);
+    exit;
+}
+
+// SALIR DE LA JAM — elimina al usuario de la sala limpiamente
+if ($accion === "salir") {
+    $codigo = $_GET["codigo"] ?? "";
+    if (!$codigo) {
+        $datos = json_decode(file_get_contents("php://input"), true);
+        $codigo = $datos["codigo"] ?? "";
+    }
+    $stmt = $pdo->prepare("
+        DELETE ju FROM JamUsuario ju
+        JOIN Jam j ON ju.IdJam = j.IdJam
+        WHERE j.Codigo = ? AND ju.IdUsuario = ?
+    ");
+    $stmt->execute([$codigo, $idUsuario]);
+    echo json_encode(["ok" => true]);
     exit;
 }
 ?>

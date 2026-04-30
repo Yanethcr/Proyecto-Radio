@@ -43,7 +43,7 @@
     </header>
 
     <main>
-        <div class="barra-busqueda-wrapper" style="position:relative; width:440px; margin:0 auto 24px;">
+        <div class="barra-busqueda-wrapper" style="position:relative; width:min(440px, 95vw); margin:0 auto 24px;">
             <div class="barra-busqueda" style="margin:0;">
                 <i class="fas fa-magnifying-glass" id="iconoBusqueda"></i>
                 <input type="text" id="inputBusqueda" placeholder="Buscar ciudad, país o estación" autocomplete="off">
@@ -65,9 +65,9 @@
         <div class="panel-emisoras" id="panel-emisoras">
             <div class="panel-header">
                 <h3 id="panel-pais">Emisoras</h3>
-                <button class="btn-cerrar-panel" id="panel-cerrar"><i class="fas fa-xmark"></i></button>
+                <button id="panel-cerrar" style="background:transparent;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;"><i class="fas fa-xmark"></i></button>
             </div>
-            <div class="panel-loader" id="panel-loader">
+            <div class="panel-loader" id="panel-loader" style="flex-shrink:0;">
                 <i class="fas fa-spinner fa-spin"></i><span>Cargando emisoras...</span>
             </div>
             <div class="lista-emisoras" id="panel-lista"></div>
@@ -103,22 +103,24 @@
         <div class="panel-historial" id="panelHistorial">
             <div class="panel-header">
                 <h3>Historial</h3>
-                <button class="btn-cerrar-panel" id="cerrarHistorial"><i class="fas fa-xmark"></i></button>
+                <button class="btn-cerrar-panel" id="cerrarHistorial" style="background:transparent;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;"><i class="fas fa-xmark"></i></button>
             </div>
-            <div id="listaHistorialItems" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            <div id="listaHistorialItems" style="display:flex;flex-direction:column;gap:10px;"></div>
         </div>
 
         <div class="panel-amigos" id="panelAmigos">
             <div class="panel-header">
                 <h3>Amigos</h3>
-                <button class="btn-cerrar-panel" id="cerrarAmigos"><i class="fas fa-xmark"></i></button>
+                <button class="btn-cerrar-panel" id="cerrarAmigos" style="background:transparent;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;"><i class="fas fa-xmark"></i></button>
             </div>
-            <div class="buscador-amigos">
-                <i class="fas fa-magnifying-glass"></i>
-                <input type="text" id="inputBuscarAmigo" placeholder="Buscar nuevos amigos...">
+            <div class="panel-amigos-subheader">
+                <div class="buscador-amigos">
+                    <i class="fas fa-magnifying-glass"></i>
+                    <input type="text" id="inputBuscarAmigo" placeholder="Buscar nuevos amigos...">
+                </div>
+                <div id="resultadosBusquedaAmigos" style="display:none;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+                <h4 style="color:var(--text-muted);font-size:11px;text-transform:uppercase;margin:10px 0 6px;letter-spacing:1px;">Mi Lista</h4>
             </div>
-            <div id="resultadosBusquedaAmigos" style="display:none; flex-direction:column; gap:8px; margin-bottom:20px;"></div>
-            <h4 style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">Mi Lista</h4>
             <div class="lista-amigos" id="listaAmigos"></div>
         </div>
     </main>
@@ -215,8 +217,7 @@
             }
         });
 
-        document.getElementById('cerrarHistorial').addEventListener('click', () => panelHistorial.classList.remove('abierto'));
-
+        
         const usuarioLoggeado = sessionStorage.getItem('at_user');
         if (usuarioLoggeado) {
             document.getElementById('nombreUsuarioNav').textContent = '@' + usuarioLoggeado;
@@ -256,6 +257,7 @@
                         sessionStorage.setItem('jam_codigo', codigo);
                         sessionStorage.setItem('jam_id', data.idJam || data.id || data.IdJam || codigo); 
                         sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
+                        sessionStorage.setItem('jam_rol', 'Invitado');
                         window.location.href = 'jam.html';
                     } else {
                         alert(data.mensaje);
@@ -277,8 +279,7 @@
             if (this.classList.contains('abierto') && e.propertyName === 'right') cargarAmigos();
         });
 
-        document.getElementById('cerrarAmigos').addEventListener('click', () => document.getElementById('panelAmigos').classList.remove('abierto'));
-
+        
         document.getElementById('btnNavAmigos').addEventListener('click', function (e) {
             e.preventDefault(); e.stopPropagation();
             document.getElementById('panelAmigos').classList.add('abierto');
@@ -362,6 +363,7 @@
                             sessionStorage.setItem('jam_codigo', codigo);
                             sessionStorage.setItem('jam_id', dataCrear.idJam || dataCrear.id || dataCrear.IdJam || codigo); 
                             sessionStorage.setItem('jam_estacion_lugar', window.estacionActualData.lugar || 'Internacional');
+                            sessionStorage.setItem('jam_rol', 'Host');
 
                             alert(`¡Invitación enviada a @${amigoNombre}! 🚀\n\nEntrando a la sala Jam...`);
                             window.location.href = 'jam.html';
@@ -495,6 +497,7 @@
                                     sessionStorage.setItem('jam_estacion_url', d.stream_url);
                                     sessionStorage.setItem('jam_codigo', inv.Codigo);
                                     sessionStorage.setItem('jam_estacion_lugar', 'Internacional');
+                                    sessionStorage.setItem('jam_rol', 'Invitado');
                                     window.location.href = 'jam.html';
                                 }
                             },
@@ -625,6 +628,37 @@
                 e.preventDefault(); sessionStorage.removeItem('at_logged'); sessionStorage.removeItem('at_user'); window.location.href = 'index.html';
             });
         });
+
+        // Botones de cierre de paneles (móvil)
+        const cerrarHistorialBtn = document.getElementById('cerrarHistorial');
+        if (cerrarHistorialBtn) cerrarHistorialBtn.addEventListener('click', () => document.getElementById('panelHistorial').classList.remove('abierto'));
+        const cerrarAmigosBtn = document.getElementById('cerrarAmigos');
+        if (cerrarAmigosBtn) cerrarAmigosBtn.addEventListener('click', () => document.getElementById('panelAmigos').classList.remove('abierto'));
+
+        // ── Medir altura real del header y aplicarla a paneles e iconos laterales ──
+        function aplicarAlturaHeader() {
+            const hdr = document.querySelector('header');
+            if (!hdr) return;
+            const h = hdr.getBoundingClientRect().height;
+            document.documentElement.style.setProperty('--header-h', h + 'px');
+            // Ajustar iconos laterales: centrarlos entre header y reproductor
+            const iconosLateral = document.querySelector('.iconos-lateral');
+            if (iconosLateral && window.innerWidth <= 768) {
+                const reproductorH = document.querySelector('.reproductor')?.getBoundingClientRect().height || 90;
+                const available = window.innerHeight - h - reproductorH;
+                const top = h + (available / 2);
+                iconosLateral.style.top = top + 'px';
+                iconosLateral.style.transform = 'translateY(-50%)';
+                iconosLateral.style.bottom = 'auto';
+            }
+        }
+        // Ejecutar al cargar y en cada resize/orientación
+        window.addEventListener('load', aplicarAlturaHeader);
+        window.addEventListener('resize', aplicarAlturaHeader);
+        // También ejecutar inmediatamente por si el DOM ya está listo
+        aplicarAlturaHeader();
+        // Segundo intento con RAF por si el header aún no tenía dimensiones
+        requestAnimationFrame(() => requestAnimationFrame(aplicarAlturaHeader));
     </script>
     <script>
         // SCRIPT PARA CERRAR PANELES AL DAR CLIC FUERA

@@ -172,9 +172,14 @@
             }
         });
 
-        // Al salir de la Jam
+        // Al salir de la Jam con el botón Terminar (aplica a Host e Invitado)
         document.querySelector('.btn-terminar')?.addEventListener('click', () => {
             audJam.pause();
+            // Salir explícito — funciona para cualquier rol
+            if (codigoActual) {
+                navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
+            }
+            sessionStorage.removeItem('jam_rol');
         });
 
         async function actualizarUsuariosJam() {
@@ -206,6 +211,28 @@
         // Polling cada 4 segundos
         setInterval(actualizarUsuariosJam, 4000);
         actualizarUsuariosJam(); // Ejecución inmediata al cargar
+
+        // HEARTBEAT — avisa al servidor que seguimos en la sala cada 10s
+        const codigoActual = sessionStorage.getItem('jam_codigo');
+        const rolActual = sessionStorage.getItem('jam_rol') ?? 'Invitado';
+
+        function enviarHeartbeat() {
+            if (codigoActual) {
+                fetch(`backend/jam.php?accion=heartbeat&codigo=${codigoActual}`).catch(() => {});
+            }
+        }
+        enviarHeartbeat();
+        setInterval(enviarHeartbeat, 10000);
+
+        // SALIR — solo elimina al usuario si es Invitado
+        // El Host permanece hasta que presione "Terminar" explícitamente
+        function salirDeJam() {
+            if (codigoActual && rolActual === 'Invitado') {
+                navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
+            }
+        }
+        window.addEventListener('beforeunload', salirDeJam);
+        window.addEventListener('pagehide', salirDeJam);
 
         // 5. LÓGICA DEL PANEL DE AMIGOS
         const panelAmigos = document.getElementById('panelAmigos');
