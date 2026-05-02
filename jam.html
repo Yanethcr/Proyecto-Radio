@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        if (!sessionStorage.getItem('at_logged')) {
+            window.location.replace('inicio.html');
+        }
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jam - Audio Traveler</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body class="jam-body no-reproductor">
+    <div id="universe"></div>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <h1>Audio Traveler</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="usuarioLoggeado.html" class="btn-nav">Inicio</a>
+                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="jam-main">
+
+        <h2 class="jam-titulo">Jam de Usuario</h2>
+
+        <div class="jam-botones">
+            <button class="btn-jam" id="btnInvitar">Invitar</button>
+            <button class="btn-jam btn-terminar">Terminar</button>
+        </div>
+
+        <div class="jam-reproductor">
+            <div class="jam-info">
+                <p class="jam-escuchando">Estás escuchando:</p>
+                <h3 class="jam-estacion">Cargando estación...</h3>
+                <p class="jam-lugar">...</p>
+            </div>
+            <div class="jam-controles">
+                <button class="control-btn"><i class="fas fa-backward-step"></i></button>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+                <button class="control-btn"><i class="fas fa-forward-step"></i></button>
+            </div>
+        </div>
+
+        <div class="jam-usuarios-container">
+            <h4><i class="fas fa-users"></i> Escuchando ahora en esta sala</h4>
+            <div id="listaUsuariosJam" class="jam-usuarios-lista">
+                <span style="color: var(--text-muted); font-size: 13px;">Cargando exploradores...</span>
+            </div>
+        </div>
+
+        <div class="barra-busqueda-jam">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" placeholder="Buscar ciudad, país o estación">
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="panel-amigos" id="panelAmigos">
+        <div class="panel-header">
+            <h3>Amigos</h3>
+            <button class="btn-cerrar-panel" id="cerrarAmigos">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="codigo-jam">
+            <p>Código de sala:</p>
+            <div class="codigo-contenedor">
+                <span id="codigoSala">------</span>
+                <button class="btn-copiar" id="btnCopiar">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <button class="btn-generar" id="btnGenerar" style="display:none;">Generar código</button>
+        </div>
+
+        <div class="buscador-amigos">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="inputBuscarAmigo" placeholder="Filtrar mi lista...">
+        </div>
+
+        <h4 style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">Mis Amigos</h4>
+
+        <div class="lista-amigos" id="listaAmigos">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-caja">
+            <h3 class="modal-titulo" id="modalTitulo">Aviso</h3>
+            <p class="modal-texto" id="modalTexto">Mensaje</p>
+            <div class="modal-botones">
+                <button class="btn-modal btn-modal-ok" id="modalBtnOk">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="estrellas.js"></script>
+
+    <script>
+        const jamNombre = sessionStorage.getItem('jam_estacion_nombre');
+        const jamUrlOriginal = sessionStorage.getItem('jam_estacion_url');
+        const jamCodigo = sessionStorage.getItem('jam_codigo');
+        const jamLugar  = sessionStorage.getItem('jam_estacion_lugar') || "Radio Compartida";
+
+        const jamUrl = (location.protocol === 'https:' && jamUrlOriginal && jamUrlOriginal.startsWith('http://')) 
+                        ? jamUrlOriginal.replace('http://', 'https://') 
+                        : jamUrlOriginal;
+
+        if (!jamUrl) {
+            alert("No te has unido a ninguna Jam válida.");
+            window.location.replace('usuarioLoggeado.html');
+        }
+
+        document.querySelector('.jam-estacion').textContent = jamNombre;
+        document.querySelector('.jam-lugar').textContent    = jamLugar;
+        document.getElementById('codigoSala').textContent   = jamCodigo;
+
+        const audJam = new Audio(jamUrl);
+        const btnPlayPause = document.querySelector('.jam-controles .control-btn:nth-child(2)');
+        
+        audJam.play().then(() => {
+            btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+        }).catch(e => {
+            btnPlayPause.innerHTML = '<i class="fas fa-play"></i>';
+            console.log("Autoplay bloqueado por el navegador.");
+        });
+
+        btnPlayPause.addEventListener('click', () => {
+            if (audJam.paused) {
+                audJam.src = jamUrl;
+                audJam.play();
+                btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audJam.pause();
+                btnPlayPause.innerHTML = '<i class="fas fa-play"></i>';
+            }
+        });
+
+        // ==========================================
+        // LA SOLUCIÓN: LÓGICA DE SALIDA SEGURA
+        // ==========================================
+        document.querySelector('.btn-terminar')?.addEventListener('click', async () => {
+            audJam.pause();
+            
+            const rolActualBtn = sessionStorage.getItem('jam_rol');
+            const idJamActual = sessionStorage.getItem('jam_id');
+            const codigoActualBtn = sessionStorage.getItem('jam_codigo');
+            
+            // Animación de carga para que el usuario no dé doble clic
+            const btn = document.querySelector('.btn-terminar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
+
+            try {
+                if (rolActualBtn === 'Host' && idJamActual) {
+                    // El Host lanza la orden para cerrar y marcar la FechaFin en la BD
+                    await fetch('backend/jam.php?accion=terminar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idJam: idJamActual })
+                    });
+                } else if (codigoActualBtn) {
+                    // El Invitado solo abandona la sala
+                    await fetch(`backend/jam.php?accion=salir&codigo=${codigoActualBtn}`);
+                }
+            } catch (error) {
+                console.error("Error al salir/terminar la sala:", error);
+            }
+            
+            // Limpiamos los rastros y redirigimos de forma segura
+            sessionStorage.removeItem('jam_rol');
+            sessionStorage.removeItem('jam_id');
+            sessionStorage.removeItem('jam_codigo');
+            
+            window.location.href = 'usuarioLoggeado.html';
+        });
+
+        async function actualizarUsuariosJam() {
+            const codigoSala = sessionStorage.getItem('jam_codigo');
+            if (!codigoSala) return;
+
+            try {
+                const res = await fetch(`backend/jam.php?accion=usuarios&codigo=${codigoSala}`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const contenedor = document.getElementById('listaUsuariosJam');
+                    contenedor.innerHTML = ''; 
+                    
+                    if(data.usuarios && data.usuarios.length > 0) {
+                        data.usuarios.forEach(u => {
+                            contenedor.innerHTML += `
+                                <span class="jam-usuario-tag">
+                                    <i class="fas fa-user"></i> @${u.Username}
+                                </span>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {}
+        }
+        setInterval(actualizarUsuariosJam, 4000);
+        actualizarUsuariosJam(); 
+
+        const codigoActual = sessionStorage.getItem('jam_codigo');
+        const rolActual = sessionStorage.getItem('jam_rol') ?? 'Invitado';
+
+        function enviarHeartbeat() {
+            if (codigoActual) {
+                fetch(`backend/jam.php?accion=heartbeat&codigo=${codigoActual}`).catch(() => {});
+            }
+        }
+        enviarHeartbeat();
+        setInterval(enviarHeartbeat, 10000);
+
+        function salirDeJam() {
+            if (codigoActual && rolActual === 'Invitado') {
+                navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
+            }
+        }
+        window.addEventListener('beforeunload', salirDeJam);
+        window.addEventListener('pagehide', salirDeJam);
+
+        const panelAmigos = document.getElementById('panelAmigos');
+        const btnInvitar = document.getElementById('btnInvitar');
+        const contenedorAmigos = document.getElementById('listaAmigos');
+
+        btnInvitar.addEventListener('click', function (e) {
+            e.stopPropagation(); 
+            panelAmigos.classList.add('abierto');
+            cargarAmigos(); 
+        });
+
+        document.getElementById('cerrarAmigos').addEventListener('click', function () {
+            panelAmigos.classList.remove('abierto');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (panelAmigos.classList.contains('abierto')) {
+                if (!panelAmigos.contains(e.target) && !btnInvitar.contains(e.target)) {
+                    panelAmigos.classList.remove('abierto');
+                }
+            }
+        });
+
+        document.getElementById('btnCopiar').addEventListener('click', function () {
+            const codigo = document.getElementById('codigoSala').textContent;
+            navigator.clipboard.writeText(codigo);
+            this.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => this.innerHTML = '<i class="fas fa-copy"></i>', 2000);
+        });
+
+        async function cargarAmigos() {
+            contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px;">Cargando amigos...</p>';
+            try {
+                const res = await fetch('backend/amigos.php?accion=listar');
+                const data = await res.json();
+                
+                contenedorAmigos.innerHTML = '';
+                if (data.amigos.length === 0) {
+                    contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:13px;">No tienes amigos agregados aún.</p>';
+                    return;
+                }
+
+                data.amigos.forEach(amigo => {
+                    const item = document.createElement('div');
+                    item.className = 'amigo-item';
+                    item.innerHTML = `
+                        <div class="lista-info">
+                            <i class="fas fa-user-circle"></i>
+                            <div>
+                                <h3>@${amigo.AmigoNombre}</h3>
+                                <p>Amigo</p>
+                            </div>
+                        </div>
+                        <div class="lista-acciones">
+                            <button class="control-btn btn-mandar-codigo" data-nombre="${amigo.AmigoNombre}" title="Enviar Invitación"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    `;
+                    contenedorAmigos.appendChild(item);
+                });
+
+                window.alert = function(mensaje) {
+                    document.getElementById('modalTitulo').textContent = "Audio Traveler";
+                    document.getElementById('modalTexto').textContent = mensaje;
+                    document.getElementById('customModal').classList.add('activo');
+                    document.getElementById('modalBtnOk').onclick = () => document.getElementById('customModal').classList.remove('activo');
+                };
+
+                document.querySelectorAll('.btn-mandar-codigo').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const amigoNombre = this.dataset.nombre;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+                        
+                        try {
+                            const res = await fetch('backend/jam.php?accion=invitar', {
+                                method: 'POST',
+                                body: JSON.stringify({ codigo: jamCodigo, amigo: amigoNombre })
+                            });
+                            const data = await res.json();
+                            if (data.ok) {
+                                alert(`¡Invitación enviada a @${amigoNombre}! 🚀`);
+                            } else {
+                                alert("No se pudo enviar. Intenta de nuevo.");
+                            }
+                        } catch (e) { alert("Error de red."); }
+                        
+                        this.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    });
+                });
+            } catch (err) {
+                contenedorAmigos.innerHTML = '<p style="color:#ff4444; font-size:12px;">Error de conexión.</p>';
+            }
+        }
+
+        document.getElementById('inputBuscarAmigo').addEventListener('input', function () {
+            const termino = this.value.toLowerCase();
+            document.querySelectorAll('.amigo-item').forEach(item => {
+                const nombre = item.querySelector('h3').textContent.toLowerCase();
+                item.style.display = nombre.includes(termino) ? 'flex' : 'none';
+            });
+        });
+    </script>
+
+    <script>
+        document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.removeItem('at_logged');
+                sessionStorage.removeItem('at_user');
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+
+</html>

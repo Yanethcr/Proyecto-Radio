@@ -84,6 +84,14 @@
     <script src="estrellas.js"></script>
 
     <script>
+        // Enter en cualquier campo del registro
+        ['username', 'correo', 'contrasena', 'confirmar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('btnRegistro').click();
+            });
+        });
+
         document.getElementById("btnRegistro").addEventListener("click", async () => {
             const username   = document.getElementById("username").value.trim();
             const correo     = document.getElementById("correo").value.trim();

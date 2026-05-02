@@ -1,10 +1,10 @@
 -- CREA LA BASE DE DATOS
 
-CREATE DATABASE IF NOT EXISTS RadioJamDB
+CREATE DATABASE IF NOT EXISTS radiojamdb
     CHARACTER SET utf8mb4
     COLLATE utf8mb4_unicode_ci;
 
-USE RadioJamDB;
+USE radiojamdb;
 
 
 
@@ -12,7 +12,7 @@ USE RadioJamDB;
 -- CREACIÓN DE TABLAS
 
 -- Tabla: Pais
-CREATE TABLE Pais ( 	
+CREATE TABLE Pais (
     IdPais      INT PRIMARY KEY AUTO_INCREMENT,
     Nombre      VARCHAR(100) NOT NULL,
     CodigoISO   VARCHAR(10)  NOT NULL
@@ -33,7 +33,7 @@ CREATE TABLE Usuarios (
     IdUsuario   INT PRIMARY KEY AUTO_INCREMENT,
     Username    VARCHAR(50)  NOT NULL UNIQUE,
     Correo      VARCHAR(100) NOT NULL UNIQUE,
-    Contrasena  VARCHAR(255) NOT NULL
+    Contraseña  VARCHAR(255) NOT NULL
 );
 
 -- Tabla: Estaciones
@@ -101,23 +101,4 @@ CREATE TABLE JamUsuario (
     Rol             VARCHAR(20),
     FOREIGN KEY (IdJam)     REFERENCES Jam(IdJam),
     FOREIGN KEY (IdUsuario) REFERENCES Usuarios(IdUsuario)
-);
-
-
-
--- Agregar columna faltante en JamUsuario
-ALTER TABLE JamUsuario
-    ADD COLUMN UltimoHeartbeat DATETIME NULL;
-
--- Crear tabla InvitacionesJam si no existe
-CREATE TABLE IF NOT EXISTS InvitacionesJam (
-    IdInvitacion    INT PRIMARY KEY AUTO_INCREMENT,
-    IdJam           INT NOT NULL,
-    IdRemitente     INT NOT NULL,
-    IdDestinatario  INT NOT NULL,
-    Estado          VARCHAR(20) DEFAULT 'Pendiente',
-    Fecha           DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (IdJam)          REFERENCES Jam(IdJam),
-    FOREIGN KEY (IdRemitente)    REFERENCES Usuarios(IdUsuario),
-    FOREIGN KEY (IdDestinatario) REFERENCES Usuarios(IdUsuario)
 );

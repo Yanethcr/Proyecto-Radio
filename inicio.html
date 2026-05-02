@@ -67,6 +67,13 @@
     <script src="estrellas.js"></script>
 
     <script>
+        // Enter en cualquier campo del login
+        ['correo', 'contrasena'].forEach(id => {
+            document.getElementById(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('btnLogin').click();
+            });
+        });
+
         document.getElementById("btnLogin").addEventListener("click", async () => {
             const correo     = document.getElementById("correo").value.trim();
             const contrasena = document.getElementById("contrasena").value.trim();
