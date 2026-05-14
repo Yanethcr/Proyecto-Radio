@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Audio Traveler</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="no-reproductor">
+    <div id="universe"></div>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <h1>Audio Traveler</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="btn-nav">Inicio</a>
+                <a href="registro.html" class="btn-nav">Registrarse</a>
+                <a href="inicio.html" class="btn-cerrar">Iniciar Sesión</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="main-login">
+        <section class="login-layout">
+            <div class="registro-texto">
+                <h2>Bienvenido de vuelta</h2>
+                <p>Inicia sesión y sigue explorando radios de todo el mundo.</p>
+            </div>
+            <div class="form-container">
+                <div id="mensaje" style="display:none; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:14px;"></div>
+                <div class="form-grupo">
+                    <label>Correo electrónico</label>
+                    <input type="email" id="correo" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-grupo">
+                    <label>Contraseña</label>
+                    <input type="password" id="contrasena" placeholder="••••••••">
+                </div>
+                <button class="btn" id="btnLogin" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Iniciar Sesión</button>
+                <p class="form-link">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="estrellas.js"></script>
+
+    <script>
+        // Enter en cualquier campo del login
+        ['correo', 'contrasena'].forEach(id => {
+            document.getElementById(id).addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('btnLogin').click();
+            });
+        });
+
+        document.getElementById("btnLogin").addEventListener("click", async () => {
+            const correo     = document.getElementById("correo").value.trim();
+            const contrasena = document.getElementById("contrasena").value.trim();
+
+            if (!correo || !contrasena) {
+                mostrarMensaje("Por favor completa todos los campos.", "error");
+                return;
+            }
+
+            try {
+                const res  = await fetch("backend/login.php", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ correo, contrasena }),
+                    credentials: "include"
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    mostrarMensaje("¡Bienvenido, " + data.username + "!", "exito");
+                    // Guardar username en sessionStorage para usarlo en otras páginas
+                    sessionStorage.setItem("at_logged", "1");
+                    sessionStorage.setItem("at_user", data.username);
+                    setTimeout(() => window.location.href = "usuarioLoggeado.html", 1200);
+                } else {
+                    mostrarMensaje(data.mensaje, "error");
+                }
+            } catch (err) {
+                mostrarMensaje("No se pudo conectar con el servidor.", "error");
+            }
+        });
+
+        function mostrarMensaje(texto, tipo) {
+            const box = document.getElementById("mensaje");
+            box.textContent = texto;
+            box.style.display = "block";
+            box.style.background = tipo === "exito" ? "#1cf00c33" : "#ff444433";
+            box.style.color      = tipo === "exito" ? "#1cf00c"   : "#ff6666";
+            box.style.border     = `1px solid ${tipo === "exito" ? "#1cf00c" : "#ff4444"}`;
+        }
+    </script>
+</body>
+
+</html>
