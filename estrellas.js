@@ -1,25 +1,55 @@
-var starCount = 400;
-var maxTime = 30;
-var universe = document.getElementById("universe");
-var w = window;
-var d = document;
-var e = d.documentElement;
-var g = d.getElementsByTagName("body")[0];
-var width = w.innerWidth || e.clientWidth || g.clientWidth;
-var height = w.innerHeight || e.clientHeight || g.clientHeight;
+<?php
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: https://radio.kesug.com");
+header("Access-Control-Allow-Credentials: true");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type");
 
-for (var i = 0; i < starCount; ++i) {
-    var ypos = Math.round(Math.random() * height);
-    var star = document.createElement("div");
-    var speed = 1000 * (Math.random() * maxTime + 1);
-    star.setAttribute("class", "star" + (3 - Math.floor(speed / 1000 / 8)));
-    star.style.backgroundColor = "white";
-    universe.appendChild(star);
-    star.animate(
-        [
-            { transform: "translate3d(" + width + "px, " + ypos + "px, 0)" },
-            { transform: "translate3d(-" + Math.random() * 256 + "px, " + ypos + "px, 0)" }
-        ],
-        { delay: Math.random() * -speed, duration: speed, iterations: 1000 }
-    );
+require_once "conexion.php";
+
+// Leer datos enviados como JSON
+$datos = json_decode(file_get_contents("php://input"), true);
+
+$username    = trim($datos["username"]    ?? "");
+$correo      = trim($datos["correo"]      ?? "");
+$contrasena  = trim($datos["contrasena"]  ?? "");
+$confirmar   = trim($datos["confirmar"]   ?? "");
+
+// Validaciones 
+if (empty($username) || empty($correo) || empty($contrasena) || empty($confirmar)) {
+    echo json_encode(["ok" => false, "mensaje" => "Todos los campos son obligatorios."]);
+    exit;
 }
+
+if (!filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["ok" => false, "mensaje" => "Correo electrónico no válido."]);
+    exit;
+}
+
+if (strlen($contrasena) < 6) {
+    echo json_encode(["ok" => false, "mensaje" => "La contraseña debe tener al menos 6 caracteres."]);
+    exit;
+}
+
+if ($contrasena !== $confirmar) {
+    echo json_encode(["ok" => false, "mensaje" => "Las contraseñas no coinciden."]);
+    exit;
+}
+
+// Verificar si el correo o username ya existen 
+$stmt = $pdo->prepare("SELECT IdUsuario FROM Usuarios WHERE Correo = ? OR Username = ?");
+$stmt->execute([$correo, $username]);
+
+if ($stmt->rowCount() > 0) {
+    echo json_encode(["ok" => false, "mensaje" => "El correo o nombre de usuario ya está registrado."]);
+    exit;
+}
+
+// Insertar usuario 
+$hash = password_hash($contrasena, PASSWORD_BCRYPT);
+
+$insert = $pdo->prepare("INSERT INTO Usuarios (Username, Correo, Contrasena) VALUES (?, ?, ?)");
+$insert->execute([$username, $correo, $hash]);
+
+echo json_encode(["ok" => true, "mensaje" => "Cuenta creada exitosamente."]);
+?>

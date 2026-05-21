@@ -1,229 +1,136 @@
-/**
- * reproductor-global.js
- * Maneja el audio de forma persistente entre páginas usando sessionStorage.
- * Inyecta un mini-reproductor flotante en páginas que no tienen el reproductor principal.
- */
+<!DOCTYPE html>
+<html lang="es">
 
-(function () {
-    // ── Claves de sessionStorage ──────────────────────────────────────────
-    const KEY_URL    = 'at_stream_url';
-    const KEY_NOMBRE = 'at_stream_nombre';
-    const KEY_LUGAR  = 'at_stream_lugar';
-    const KEY_VOL    = 'at_stream_vol';
-    const KEY_PAUSED = 'at_stream_paused';
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Audio Traveler</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
 
-    // ── Guardar estado antes de salir de cualquier página ────────────────
-    window.addEventListener('beforeunload', () => {
-        const url = window._audGlobal ? window._audGlobal.src : '';
-        if (url && url !== window.location.href) {
-            sessionStorage.setItem(KEY_URL,    url);
-            sessionStorage.setItem(KEY_NOMBRE, sessionStorage.getItem('_g_nombre') || '');
-            sessionStorage.setItem(KEY_LUGAR,  sessionStorage.getItem('_g_lugar')  || '');
-            sessionStorage.setItem(KEY_VOL,    window._audGlobal ? window._audGlobal.volume : 0.7);
-            sessionStorage.setItem(KEY_PAUSED, window._audGlobal && window._audGlobal.paused ? '1' : '0');
-        }
-    });
+<body class="no-reproductor">
+    <div id="universe"></div>
 
-    // ── Detectar si esta página tiene reproductor principal ───────────────
-    const tieneReproductorPrincipal = !!document.querySelector('.reproductor') || window.location.pathname.includes('favoritos.html');
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="index.html">
+                    <h1>Audio Traveler</h1>
+                </a>
+            </div>
+            <div class="nav-links">
+                <a href="index.html" class="btn-nav">Inicio</a>
+                <a href="registro.html" class="btn-nav">Registrarse</a>
+                <a href="inicio.html" class="btn-cerrar">Iniciar sesión</a>
+            </div>
+        </nav>
+    </header>
 
-    // ── Crear elemento de audio global ────────────────────────────────────
-    if (!window._audGlobal) {
-        window._audGlobal = new Audio();
-        window._audGlobal.volume = parseFloat(sessionStorage.getItem(KEY_VOL) || '0.7');
-    }
+    <main class="main-form">
+        <section class="registro-layout">
+            <div class="registro-texto">
+                <h2>Crear una cuenta</h2>
+                <p>Únete a Audio Traveler y explora miles de estaciones de radio alrededor del mundo.</p>
+            </div>
+            <div class="form-container">
+                <!-- aparecen los mensajes de error/éxito -->
+                <div id="mensaje" style="display:none; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:14px;"></div>
+                <div class="form-grupo">
+                    <label>Nombre</label>
+                    <input type="text" id="username" placeholder="Tu nombre de usuario">
+                </div>
+                <!--div class="form-grupo">
+                    <label>Apellidos</label>
+                    <input type="text" id="correo" placeholder="Tus apellidos">
+                </div>
+                <div class="form-grupo">
+                    <label>Fecha de nacimiento</label>
+                    <input type="date" id="cumple">
+                </div-->
+                <div class="form-grupo">
+                    <label>Correo electrónico</label>
+                    <input type="email" id="correo" placeholder="correo@ejemplo.com">
+                </div>
+                <div class="form-grupo">
+                    <label>Contraseña</label>
+                    <input type="password" id="contrasena" placeholder="••••••••">
+                </div>
+                <div class="form-grupo">
+                    <label>Confirmar contraseña</label>
+                    <input type="password" id="confirmar" placeholder="••••••••">
+                </div>
+                <button class="btn" id="btnRegistro" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Crear cuenta</button>
+                <p class="form-link">¿Ya tienes cuenta? <a href="inicio.html">Inicia sesión</a></p>
+            </div>
+        </section>
+    </main>
 
-    const aud = window._audGlobal;
-
-    // ── Función pública para reproducir desde cualquier página ────────────
-    window.globalPlay = function (url, nombre, lugar) {
-        if (!url) return;
-        sessionStorage.setItem('_g_nombre', nombre || '');
-        sessionStorage.setItem('_g_lugar',  lugar  || '');
-        sessionStorage.setItem(KEY_URL,    url);
-        sessionStorage.setItem(KEY_NOMBRE, nombre || '');
-        sessionStorage.setItem(KEY_LUGAR,  lugar  || '');
-        sessionStorage.setItem(KEY_VOL,    aud.volume);
-        sessionStorage.setItem(KEY_PAUSED, '0');
-
-        if (aud.src !== url) {
-            aud.src = url;
-        }
-        aud.play().catch(() => {});
-        actualizarMiniReproductor(nombre, lugar, false);
-    };
-
-    window.globalPause = function () {
-        aud.pause();
-        sessionStorage.setItem(KEY_PAUSED, '1');
-        actualizarMiniReproductor(null, null, true);
-    };
-
-    window.globalResume = function () {
-        aud.play().catch(() => {});
-        sessionStorage.setItem(KEY_PAUSED, '0');
-        actualizarMiniReproductor(null, null, false);
-    };
-
-    window.globalStop = function () {
-        aud.pause();
-        aud.src = '';
-        sessionStorage.removeItem(KEY_URL);
-        sessionStorage.removeItem(KEY_NOMBRE);
-        sessionStorage.removeItem(KEY_LUGAR);
-        sessionStorage.removeItem('_g_nombre');
-        sessionStorage.removeItem('_g_lugar');
-        ocultarMiniReproductor();
-    };
-
-    window.globalSetVolume = function (val) {
-        aud.volume = val;
-        sessionStorage.setItem(KEY_VOL, val);
-    };
-
-    // ── Mini reproductor flotante (solo en páginas sin reproductor principal) ──
-    function crearMiniReproductor() {
-        if (tieneReproductorPrincipal) return;
-        if (document.getElementById('mini-reproductor-global')) return;
-
-        const mini = document.createElement('div');
-        mini.id = 'mini-reproductor-global';
-        mini.innerHTML = `
-            <div class="mini-rep-info">
-                <i class="fas fa-radio" style="color:#1cf00c; flex-shrink:0;"></i>
-                <div style="min-width:0; flex:1;">
-                    <div id="mini-rep-nombre" style="font-size:13px; font-weight:600; color:#f0e6ff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
-                    <div id="mini-rep-lugar"  style="font-size:11px; color:#8a7aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+    <footer>
+        <div class="footer-inner">
+            <p class="footer-copy">&copy; 2026 Audio Traveler. Todos los derechos reservados.</p>
+            <div class="footer-team">
+                <span class="footer-team-label">Equipo:</span>
+                <div class="footer-team-names">
+                    <span>Karla Yaneth Cruz Sandoval</span>
+                    <span>Arturo Huerta Maldonado</span>
+                    <span>Josue Francisco Hernández Iturbide</span>
+                    <span>Abisai Tapia Ulloa</span>
+                    <span>Gael Askary Razo Montañez</span>
                 </div>
             </div>
-            <div class="mini-rep-controles">
-                <button id="mini-rep-playpause" class="control-btn" title="Play/Pausa">
-                    <i class="fas fa-pause"></i>
-                </button>
-                <button id="mini-rep-stop" class="control-btn" title="Detener">
-                    <i class="fas fa-stop"></i>
-                </button>
-                <div style="display:flex; align-items:center; gap:6px;">
-                    <i class="fas fa-volume-high" style="color:#8a7aaa; font-size:12px;"></i>
-                    <input id="mini-rep-vol" type="range" min="0" max="100" value="${Math.round(aud.volume * 100)}"
-                        style="width:70px; accent-color:#1cf00c; cursor:pointer;">
-                </div>
-            </div>
-        `;
-        mini.style.cssText = `
-            display: none;
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(14, 0, 28, 0.96);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(28, 240, 12, 0.35);
-            border-radius: 50px;
-            padding: 10px 20px;
-            z-index: 9999;
-            box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 0 20px rgba(28,240,12,0.08);
-            width: clamp(300px, 80vw, 540px);
-            align-items: center;
-            gap: 16px;
-        `;
+        </div>
+    </footer>
 
-        // Inyectar estilos internos
-        const style = document.createElement('style');
-        style.textContent = `
-            #mini-reproductor-global { display: none; }
-            #mini-reproductor-global.visible { display: flex !important; }
-            .mini-rep-info {
-                display: flex; align-items: center; gap: 10px;
-                flex: 1; min-width: 0;
-            }
-            .mini-rep-controles {
-                display: flex; align-items: center; gap: 10px; flex-shrink: 0;
-            }
-        `;
-        document.head.appendChild(style);
-        document.body.appendChild(mini);
+    <script src="estrellas.js"></script>
 
-        // Eventos
-        document.getElementById('mini-rep-playpause').addEventListener('click', () => {
-            if (aud.paused) {
-                window.globalResume();
-                document.getElementById('mini-rep-playpause').innerHTML = '<i class="fas fa-pause"></i>';
-            } else {
-                window.globalPause();
-                document.getElementById('mini-rep-playpause').innerHTML = '<i class="fas fa-play"></i>';
-            }
-        });
-
-        document.getElementById('mini-rep-stop').addEventListener('click', () => {
-            window.globalStop();
-        });
-
-        document.getElementById('mini-rep-vol').addEventListener('input', function () {
-            window.globalSetVolume(this.value / 100);
-        });
-    }
-
-    function actualizarMiniReproductor(nombre, lugar, pausado) {
-        if (tieneReproductorPrincipal) return;
-
-        const mini = document.getElementById('mini-reproductor-global');
-        if (!mini) return;
-
-        if (nombre !== null) document.getElementById('mini-rep-nombre').textContent = nombre || sessionStorage.getItem(KEY_NOMBRE) || '';
-        if (lugar  !== null) document.getElementById('mini-rep-lugar').textContent  = lugar  || sessionStorage.getItem(KEY_LUGAR)  || '';
-
-        const btn = document.getElementById('mini-rep-playpause');
-        if (btn) btn.innerHTML = pausado ? '<i class="fas fa-play"></i>' : '<i class="fas fa-pause"></i>';
-
-        mini.classList.add('visible');
-    }
-
-    function ocultarMiniReproductor() {
-        const mini = document.getElementById('mini-reproductor-global');
-        if (mini) mini.classList.remove('visible');
-    }
-
-    // ── Al cargar: reanudar si había algo sonando ─────────────────────────
-    window.addEventListener('DOMContentLoaded', () => {
-        crearMiniReproductor();
-
-        const url    = sessionStorage.getItem(KEY_URL);
-        const nombre = sessionStorage.getItem(KEY_NOMBRE) || '';
-        const lugar  = sessionStorage.getItem(KEY_LUGAR)  || '';
-        const vol    = parseFloat(sessionStorage.getItem(KEY_VOL) || '0.7');
-        const paused = sessionStorage.getItem(KEY_PAUSED) === '1';
-
-        if (!url) return;
-
-        aud.volume = vol;
-        sessionStorage.setItem('_g_nombre', nombre);
-        sessionStorage.setItem('_g_lugar',  lugar);
-
-        if (tieneReproductorPrincipal) {
-            // Delegar al sistema de globo.js (usuarioLoggeado.html)
-            // Se activa desde el script de esa página
-            return;
-        }
-
-        // En páginas secundarias: mostrar mini reproductor y reanudar
-        if (aud.src !== url) aud.src = url;
-
-        actualizarMiniReproductor(nombre, lugar, true);
-
-        if (!paused) {
-            aud.play().then(() => {
-                actualizarMiniReproductor(nombre, lugar, false);
-            }).catch(() => {
-                // Autoplay bloqueado — mostrar en pausa, el usuario da click
-                actualizarMiniReproductor(nombre, lugar, true);
+    <script>
+        // Enter en cualquier campo del registro
+        ['username', 'correo', 'contrasena', 'confirmar'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') document.getElementById('btnRegistro').click();
             });
+        });
+
+        document.getElementById("btnRegistro").addEventListener("click", async () => {
+            const username   = document.getElementById("username").value.trim();
+            const correo     = document.getElementById("correo").value.trim();
+            const contrasena = document.getElementById("contrasena").value.trim();
+            const confirmar  = document.getElementById("confirmar").value.trim();
+ 
+            if (!username || !correo || !contrasena || !confirmar) {
+                mostrarMensaje("Por favor completa todos los campos.", "error");
+                return;
+            }
+ 
+            try {
+                const res  = await fetch("backend/registro.php", {
+                    method:  "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body:    JSON.stringify({ username, correo, contrasena, confirmar })
+                });
+                const data = await res.json();
+ 
+                if (data.ok) {
+                    mostrarMensaje(data.mensaje, "exito");
+                    setTimeout(() => window.location.href = "inicio.html", 1500);
+                } else {
+                    mostrarMensaje(data.mensaje, "error");
+                }
+            } catch (err) {
+                mostrarMensaje("No se pudo conectar con el servidor.", "error");
+            }
+        });
+ 
+        function mostrarMensaje(texto, tipo) {
+            const box = document.getElementById("mensaje");
+            box.textContent = texto;
+            box.style.display = "block";
+            box.style.background = tipo === "exito" ? "#1cf00c33" : "#ff444433";
+            box.style.color      = tipo === "exito" ? "#1cf00c"   : "#ff6666";
+            box.style.border     = `1px solid ${tipo === "exito" ? "#1cf00c" : "#ff4444"}`;
         }
+    </script>
+</body>
 
-        // Sincronizar volumen con slider
-        const volSlider = document.getElementById('mini-rep-vol');
-        if (volSlider) volSlider.value = Math.round(vol * 100);
-    });
-
-})();
+</html>
