@@ -2,14 +2,8 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: https://radio.kesug.com");
 header("Access-Control-Allow-Credentials: true");
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'domain'   => 'radio.kesug.com',
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
+header("Access-Control-Allow-Methods: POST, GET");
+header("Access-Control-Allow-Headers: Content-Type");
 session_start();
 require_once "conexion.php";
 
@@ -190,52 +184,4 @@ if ($accion === "terminar") {
     }
     exit;
 }
-
-// CAMBIAR ESTACIÓN (solo el Host)
-if ($accion === "cambiar") {
-    $datos      = json_decode(file_get_contents("php://input"), true);
-    $codigo     = $datos["codigo"]  ?? "";
-    $streamUrl  = $datos["streamUrl"]  ?? "";
-    $nombre     = $datos["nombre"] ?? "";
-    $lugar      = $datos["lugar"]  ?? "";
-
-    // Verificar que sea el Host
-    $stmt = $pdo->prepare("SELECT j.IdJam FROM Jam j JOIN JamUsuario ju ON j.IdJam = ju.IdJam WHERE j.Codigo = ? AND ju.IdUsuario = ? AND ju.Rol = 'Host' AND j.Estado = 'Activa'");
-    $stmt->execute([$codigo, $idUsuario]);
-    $jam = $stmt->fetch();
-
-    if (!$jam) {
-        echo json_encode(["ok" => false, "mensaje" => "No autorizado o sala inactiva."]);
-        exit;
-    }
-
-    $pdo->prepare("UPDATE Jam SET StreamActual = ?, NombreActual = ?, LugarActual = ? WHERE IdJam = ?")
-        ->execute([$streamUrl, $nombre, $lugar, $jam["IdJam"]]);
-
-    echo json_encode(["ok" => true]);
-    exit;
-}
-
-// OBTENER STREAM ACTUAL (para que los Invitados sincronicen)
-if ($accion === "stream") {
-    $codigo = $_GET["codigo"] ?? "";
-    $stmt = $pdo->prepare("SELECT e.Stream_url, e.Nombre, StreamActual, NombreActual, LugarActual FROM Jam j JOIN Estaciones e ON j.IdEstacion = e.IdEstacion WHERE j.Codigo = ? AND j.Estado = 'Activa'");
-    $stmt->execute([$codigo]);
-    $jam = $stmt->fetch();
-
-    if (!$jam) {
-        echo json_encode(["ok" => false]);
-        exit;
-    }
-
-    // Si el Host cambió el stream, usar ese; si no, usar el original
-    $stream = $jam["StreamActual"] ?: $jam["Stream_url"];
-    $nombre = $jam["NombreActual"] ?: $jam["Nombre"];
-    $lugar  = $jam["LugarActual"]  ?: "Internacional";
-
-    echo json_encode(["ok" => true, "stream_url" => $stream, "nombre" => $nombre, "lugar" => $lugar]);
-    exit;
-}
-
-
 ?>

@@ -2,15 +2,8 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: https://radio.kesug.com");
 header("Access-Control-Allow-Credentials: true");
-
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'domain'   => 'radio.kesug.com',
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
+header("Access-Control-Allow-Methods: POST, GET");
+header("Access-Control-Allow-Headers: Content-Type");
 session_start();
 require_once "conexion.php";
 
@@ -43,6 +36,8 @@ if ($accion === "buscar") {
         echo json_encode(["ok" => true, "resultados" => []]);
         exit;
     }
+    
+    // Buscar usuarios que coincidan, que NO seas tú mismo, y que NO sean ya tus amigos
     $stmt = $pdo->prepare("
         SELECT IdUsuario, Username 
         FROM Usuarios 
@@ -60,6 +55,7 @@ if ($accion === "buscar") {
 if ($accion === "agregar") {
     $datos = json_decode(file_get_contents("php://input"), true);
     $idAmigo = intval($datos["idAmigo"] ?? 0);
+
     if ($idAmigo) {
         $stmt = $pdo->prepare("INSERT INTO Amigos (Username, IdUsuarioAmigo, Estado) VALUES (?, ?, 'Aceptado')");
         $stmt->execute([$miUsername, $idAmigo]);
@@ -72,6 +68,7 @@ if ($accion === "agregar") {
 if ($accion === "eliminar") {
     $datos = json_decode(file_get_contents("php://input"), true);
     $idAmigos = intval($datos["idAmigos"] ?? 0);
+
     if ($idAmigos) {
         $stmt = $pdo->prepare("DELETE FROM Amigos WHERE IdAmigos = ? AND Username = ?");
         $stmt->execute([$idAmigos, $miUsername]);

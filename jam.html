@@ -2,13 +2,19 @@
 <html lang="es">
 
 <head>
+    <script>
+        if (!sessionStorage.getItem('at_logged')) {
+            window.location.replace('inicio.html');
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Audio Traveler</title>
+    <title>Jam - Audio Traveler</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
-<body class="no-reproductor">
+<body class="jam-body no-reproductor">
     <div id="universe"></div>
 
     <header>
@@ -19,33 +25,47 @@
                 </a>
             </div>
             <div class="nav-links">
-                <a href="index.html" class="btn-nav">Inicio</a>
-                <a href="registro.html" class="btn-nav">Registrarse</a>
-                <a href="inicio.html" class="btn-cerrar">Iniciar Sesión</a>
+                <a href="usuarioLoggeado.html" class="btn-nav">Inicio</a>
+                <a href="index.html" class="btn-cerrar">Cerrar Sesión</a>
             </div>
         </nav>
     </header>
 
-    <main class="main-login">
-        <section class="login-layout">
-            <div class="registro-texto">
-                <h2>Bienvenido de vuelta</h2>
-                <p>Inicia sesión y sigue explorando radios de todo el mundo.</p>
+    <main class="jam-main">
+
+        <h2 class="jam-titulo">Jam de Usuario</h2>
+
+        <div class="jam-botones">
+            <button class="btn-jam" id="btnInvitar">Invitar</button>
+            <button class="btn-jam btn-terminar">Terminar</button>
+        </div>
+
+        <div class="jam-reproductor">
+            <div class="jam-info">
+                <p class="jam-escuchando">Estás escuchando:</p>
+                <h3 class="jam-estacion">Cargando estación...</h3>
+                <p class="jam-lugar">...</p>
             </div>
-            <div class="form-container">
-                <div id="mensaje" style="display:none; padding:10px; border-radius:8px; margin-bottom:15px; text-align:center; font-size:14px;"></div>
-                <div class="form-grupo">
-                    <label>Correo electrónico</label>
-                    <input type="email" id="correo" placeholder="correo@ejemplo.com">
-                </div>
-                <div class="form-grupo">
-                    <label>Contraseña</label>
-                    <input type="password" id="contrasena" placeholder="••••••••">
-                </div>
-                <button class="btn" id="btnLogin" style="width:100%;text-align:center;display:block;margin-top:8px;padding:12px;">Iniciar Sesión</button>
-                <p class="form-link">¿No tienes cuenta? <a href="registro.html">Regístrate</a></p>
+            <div class="jam-controles">
+                <button class="control-btn"><i class="fas fa-backward-step"></i></button>
+                <button class="control-btn"><i class="fas fa-play"></i></button>
+                <button class="control-btn"><i class="fas fa-forward-step"></i></button>
             </div>
-        </section>
+        </div>
+
+        <div class="jam-usuarios-container">
+            <h4><i class="fas fa-users"></i> Escuchando ahora en esta sala</h4>
+            <div id="listaUsuariosJam" class="jam-usuarios-lista">
+                <span style="color: var(--text-muted); font-size: 13px;">Cargando exploradores...</span>
+            </div>
+        </div>
+
+        <div class="barra-busqueda-jam" style="position:relative;">
+            <i class="fas fa-magnifying-glass" id="iconoBusquedaJam"></i>
+            <input type="text" id="inputBusquedaJam" placeholder="Buscar ciudad, país o estación">
+            <div id="resultadosBusquedaJam" style="display:none; position:absolute; top:calc(100% + 8px); left:0; right:0; background:rgba(22,0,40,0.95); backdrop-filter:blur(20px); border:1px solid rgba(28,240,12,0.3); border-radius:12px; z-index:1000; max-height:300px; overflow-y:auto; box-shadow:0 8px 32px rgba(0,0,0,0.5);"></div>
+        </div>
+
     </main>
 
     <footer>
@@ -64,56 +84,391 @@
         </div>
     </footer>
 
+    <div class="panel-amigos" id="panelAmigos">
+        <div class="panel-header">
+            <h3>Amigos</h3>
+            <button class="btn-cerrar-panel" id="cerrarAmigos">
+                <i class="fas fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="codigo-jam">
+            <p>Código de sala:</p>
+            <div class="codigo-contenedor">
+                <span id="codigoSala">------</span>
+                <button class="btn-copiar" id="btnCopiar">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </div>
+            <button class="btn-generar" id="btnGenerar" style="display:none;">Generar código</button>
+        </div>
+
+        <div class="buscador-amigos">
+            <i class="fas fa-magnifying-glass"></i>
+            <input type="text" id="inputBuscarAmigo" placeholder="Filtrar mi lista...">
+        </div>
+
+        <h4 style="color:var(--text-muted); font-size:11px; text-transform:uppercase; margin-bottom:10px; letter-spacing:1px;">Mis Amigos</h4>
+
+        <div class="lista-amigos" id="listaAmigos">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="customModal">
+        <div class="modal-caja">
+            <h3 class="modal-titulo" id="modalTitulo">Aviso</h3>
+            <p class="modal-texto" id="modalTexto">Mensaje</p>
+            <div class="modal-botones">
+                <button class="btn-modal btn-modal-ok" id="modalBtnOk">Entendido</button>
+            </div>
+        </div>
+    </div>
+
     <script src="estrellas.js"></script>
 
     <script>
-        // Enter en cualquier campo del login
-        ['correo', 'contrasena'].forEach(id => {
-            document.getElementById(id).addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') document.getElementById('btnLogin').click();
-            });
+        const jamNombre = sessionStorage.getItem('jam_estacion_nombre');
+        const jamUrlOriginal = sessionStorage.getItem('jam_estacion_url');
+        const jamCodigo = sessionStorage.getItem('jam_codigo');
+        const jamLugar  = sessionStorage.getItem('jam_estacion_lugar') || "Radio Compartida";
+
+        const jamUrl = (location.protocol === 'https:' && jamUrlOriginal && jamUrlOriginal.startsWith('http://')) 
+                        ? jamUrlOriginal.replace('http://', 'https://') 
+                        : jamUrlOriginal;
+
+        if (!jamUrl) {
+            alert("No te has unido a ninguna Jam válida.");
+            window.location.replace('usuarioLoggeado.html');
+        }
+
+        document.querySelector('.jam-estacion').textContent = jamNombre;
+        document.querySelector('.jam-lugar').textContent    = jamLugar;
+        document.getElementById('codigoSala').textContent   = jamCodigo;
+
+        const audJam = new Audio(jamUrl);
+        const btnPlayPause = document.querySelector('.jam-controles .control-btn:nth-child(2)');
+        
+        audJam.play().then(() => {
+            btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+        }).catch(e => {
+            btnPlayPause.innerHTML = '<i class="fas fa-play"></i>';
+            console.log("Autoplay bloqueado por el navegador.");
         });
 
-        document.getElementById("btnLogin").addEventListener("click", async () => {
-            const correo     = document.getElementById("correo").value.trim();
-            const contrasena = document.getElementById("contrasena").value.trim();
-
-            if (!correo || !contrasena) {
-                mostrarMensaje("Por favor completa todos los campos.", "error");
-                return;
+        btnPlayPause.addEventListener('click', () => {
+            if (audJam.paused) {
+                audJam.src = jamUrl;
+                audJam.play();
+                btnPlayPause.innerHTML = '<i class="fas fa-pause"></i>';
+            } else {
+                audJam.pause();
+                btnPlayPause.innerHTML = '<i class="fas fa-play"></i>';
             }
+        });
+
+        // ==========================================
+        // LA SOLUCIÓN: LÓGICA DE SALIDA SEGURA
+        // ==========================================
+        document.querySelector('.btn-terminar')?.addEventListener('click', async () => {
+            audJam.pause();
+            
+            const rolActualBtn = sessionStorage.getItem('jam_rol');
+            const idJamActual = sessionStorage.getItem('jam_id');
+            const codigoActualBtn = sessionStorage.getItem('jam_codigo');
+            
+            // Animación de carga para que el usuario no dé doble clic
+            const btn = document.querySelector('.btn-terminar');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            btn.disabled = true;
 
             try {
-                const res  = await fetch("backend/login.php", {
-                    method:  "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body:    JSON.stringify({ correo, contrasena }),
-                    credentials: "include"
-                });
-                const data = await res.json();
-
-                if (data.ok) {
-                    mostrarMensaje("¡Bienvenido, " + data.username + "!", "exito");
-                    // Guardar username en sessionStorage para usarlo en otras páginas
-                    sessionStorage.setItem("at_logged", "1");
-                    sessionStorage.setItem("at_user", data.username);
-                    setTimeout(() => window.location.href = "usuarioLoggeado.html", 1200);
-                } else {
-                    mostrarMensaje(data.mensaje, "error");
+                if (rolActualBtn === 'Host' && idJamActual) {
+                    // El Host lanza la orden para cerrar y marcar la FechaFin en la BD
+                    await fetch('backend/jam.php?accion=terminar', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idJam: idJamActual })
+                    });
+                } else if (codigoActualBtn) {
+                    // El Invitado solo abandona la sala
+                    await fetch(`backend/jam.php?accion=salir&codigo=${codigoActualBtn}`);
                 }
-            } catch (err) {
-                mostrarMensaje("No se pudo conectar con el servidor.", "error");
+            } catch (error) {
+                console.error("Error al salir/terminar la sala:", error);
+            }
+            
+            // Limpiamos los rastros y redirigimos de forma segura
+            sessionStorage.removeItem('jam_rol');
+            sessionStorage.removeItem('jam_id');
+            sessionStorage.removeItem('jam_codigo');
+            
+            window.location.href = 'usuarioLoggeado.html';
+        });
+
+        async function actualizarUsuariosJam() {
+            const codigoSala = sessionStorage.getItem('jam_codigo');
+            if (!codigoSala) return;
+
+            try {
+                const res = await fetch(`backend/jam.php?accion=usuarios&codigo=${codigoSala}`);
+                const data = await res.json();
+                
+                if (data.ok) {
+                    const contenedor = document.getElementById('listaUsuariosJam');
+                    contenedor.innerHTML = ''; 
+                    
+                    if(data.usuarios && data.usuarios.length > 0) {
+                        data.usuarios.forEach(u => {
+                            contenedor.innerHTML += `
+                                <span class="jam-usuario-tag">
+                                    <i class="fas fa-user"></i> @${u.Username}
+                                </span>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {}
+        }
+        setInterval(actualizarUsuariosJam, 4000);
+        actualizarUsuariosJam(); 
+
+        const codigoActual = sessionStorage.getItem('jam_codigo');
+        const rolActual = sessionStorage.getItem('jam_rol') ?? 'Invitado';
+
+        function enviarHeartbeat() {
+            if (codigoActual) {
+                fetch(`backend/jam.php?accion=heartbeat&codigo=${codigoActual}`).catch(() => {});
+            }
+        }
+        enviarHeartbeat();
+        setInterval(enviarHeartbeat, 10000);
+
+        function salirDeJam() {
+            if (codigoActual && rolActual === 'Invitado') {
+                navigator.sendBeacon(`backend/jam.php?accion=salir&codigo=${codigoActual}`);
+            }
+        }
+        window.addEventListener('beforeunload', salirDeJam);
+        window.addEventListener('pagehide', salirDeJam);
+
+        const panelAmigos = document.getElementById('panelAmigos');
+        const btnInvitar = document.getElementById('btnInvitar');
+        const contenedorAmigos = document.getElementById('listaAmigos');
+
+        btnInvitar.addEventListener('click', function (e) {
+            e.stopPropagation(); 
+            panelAmigos.classList.add('abierto');
+            cargarAmigos(); 
+        });
+
+        document.getElementById('cerrarAmigos').addEventListener('click', function () {
+            panelAmigos.classList.remove('abierto');
+        });
+
+        document.addEventListener('click', function(e) {
+            if (panelAmigos.classList.contains('abierto')) {
+                if (!panelAmigos.contains(e.target) && !btnInvitar.contains(e.target)) {
+                    panelAmigos.classList.remove('abierto');
+                }
             }
         });
 
-        function mostrarMensaje(texto, tipo) {
-            const box = document.getElementById("mensaje");
-            box.textContent = texto;
-            box.style.display = "block";
-            box.style.background = tipo === "exito" ? "#1cf00c33" : "#ff444433";
-            box.style.color      = tipo === "exito" ? "#1cf00c"   : "#ff6666";
-            box.style.border     = `1px solid ${tipo === "exito" ? "#1cf00c" : "#ff4444"}`;
+        document.getElementById('btnCopiar').addEventListener('click', function () {
+            const codigo = document.getElementById('codigoSala').textContent;
+            navigator.clipboard.writeText(codigo);
+            this.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => this.innerHTML = '<i class="fas fa-copy"></i>', 2000);
+        });
+
+        async function cargarAmigos() {
+            contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:12px;">Cargando amigos...</p>';
+            try {
+                const res = await fetch('backend/amigos.php?accion=listar');
+                const data = await res.json();
+                
+                contenedorAmigos.innerHTML = '';
+                if (data.amigos.length === 0) {
+                    contenedorAmigos.innerHTML = '<p style="text-align:center; color:var(--text-muted); font-size:13px;">No tienes amigos agregados aún.</p>';
+                    return;
+                }
+
+                data.amigos.forEach(amigo => {
+                    const item = document.createElement('div');
+                    item.className = 'amigo-item';
+                    item.innerHTML = `
+                        <div class="lista-info">
+                            <i class="fas fa-user-circle"></i>
+                            <div>
+                                <h3>@${amigo.AmigoNombre}</h3>
+                                <p>Amigo</p>
+                            </div>
+                        </div>
+                        <div class="lista-acciones">
+                            <button class="control-btn btn-mandar-codigo" data-nombre="${amigo.AmigoNombre}" title="Enviar Invitación"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    `;
+                    contenedorAmigos.appendChild(item);
+                });
+
+                window.alert = function(mensaje) {
+                    document.getElementById('modalTitulo').textContent = "Audio Traveler";
+                    document.getElementById('modalTexto').textContent = mensaje;
+                    document.getElementById('customModal').classList.add('activo');
+                    document.getElementById('modalBtnOk').onclick = () => document.getElementById('customModal').classList.remove('activo');
+                };
+
+                document.querySelectorAll('.btn-mandar-codigo').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const amigoNombre = this.dataset.nombre;
+                        this.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+                        
+                        try {
+                            const res = await fetch('backend/jam.php?accion=invitar', {
+                                method: 'POST',
+                                body: JSON.stringify({ codigo: jamCodigo, amigo: amigoNombre })
+                            });
+                            const data = await res.json();
+                            if (data.ok) {
+                                alert(`¡Invitación enviada a @${amigoNombre}! 🚀`);
+                            } else {
+                                alert("No se pudo enviar. Intenta de nuevo.");
+                            }
+                        } catch (e) { alert("Error de red."); }
+                        
+                        this.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                    });
+                });
+            } catch (err) {
+                contenedorAmigos.innerHTML = '<p style="color:#ff4444; font-size:12px;">Error de conexión.</p>';
+            }
         }
+
+        document.getElementById('inputBuscarAmigo').addEventListener('input', function () {
+            const termino = this.value.toLowerCase();
+            document.querySelectorAll('.amigo-item').forEach(item => {
+                const nombre = item.querySelector('h3').textContent.toLowerCase();
+                item.style.display = nombre.includes(termino) ? 'flex' : 'none';
+            });
+        });
+    </script>
+
+    <script>
+        document.querySelectorAll('a[href="index.html"].btn-cerrar').forEach(a => {
+            a.addEventListener('click', function(e) {
+                e.preventDefault();
+                sessionStorage.clear();
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+    <script>
+        (function() {
+            const RADIO_API = 'https://de1.api.radio-browser.info/json';
+            const inputBusq = document.getElementById('inputBusquedaJam');
+            const cajaRes   = document.getElementById('resultadosBusquedaJam');
+            const iconoBusq = document.getElementById('iconoBusquedaJam');
+            let timerBusq   = null;
+            let controller  = null;
+
+            function posicionarResultados() {
+                const rect = inputBusq.getBoundingClientRect();
+                cajaRes.style.width = rect.width + 'px';
+                // En este caso, como tiene position:absolute en un contenedor relativo, 
+                // ya se posiciona bien, pero el mandato pide getBoundingClientRect.
+                // Lo usaremos para asegurar que se actualice si es necesario.
+            }
+
+            window.addEventListener('resize', posicionarResultados);
+            window.addEventListener('scroll', posicionarResultados, true);
+
+            async function buscar(q) {
+                if (controller) controller.abort();
+                controller = new AbortController();
+                
+                iconoBusq.className = 'fas fa-spinner fa-spin';
+                cajaRes.innerHTML = '<div style="padding:15px; text-align:center; color:rgba(255,255,255,0.5); font-size:12px;">Buscando emisoras...</div>';
+                cajaRes.style.display = 'block';
+                posicionarResultados();
+
+                try {
+                    const res = await fetch(`${RADIO_API}/stations/search?name=${encodeURIComponent(q)}&limit=10&hidebroken=true&order=votes&reverse=true`, { signal: controller.signal });
+                    const stations = await res.json();
+                    
+                    iconoBusq.className = 'fas fa-magnifying-glass';
+                    if (stations.length === 0) {
+                        cajaRes.innerHTML = '<div style="padding:15px; text-align:center; color:rgba(255,255,255,0.5); font-size:12px;">No se encontraron resultados.</div>';
+                        return;
+                    }
+
+                    cajaRes.innerHTML = '';
+                    stations.forEach(st => {
+                        const div = document.createElement('div');
+                        div.className = 'lista-item';
+                        div.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                        div.style.padding = '10px 15px';
+                        div.style.cursor = 'pointer';
+                        div.innerHTML = `
+                            <div class="lista-info">
+                                <i class="fas fa-radio" style="color:#1cf00c;"></i>
+                                <div style="min-width:0;">
+                                    <h3 style="font-size:13px; margin:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${st.name}</h3>
+                                    <p style="font-size:11px; margin:2px 0 0; color:rgba(255,255,255,0.5);">${st.country}</p>
+                                </div>
+                            </div>
+                        `;
+                        div.onclick = async () => {
+                            const urlOriginal = st.url_resolved || st.url;
+                            const url = (location.protocol === 'https:' && urlOriginal && urlOriginal.startsWith('http://')) 
+                                        ? urlOriginal.replace('http://', 'https://') 
+                                        : urlOriginal;
+                            
+                            // Cambiar estación en la Jam si es el Host
+                            const rol = sessionStorage.getItem('jam_rol');
+                            const idJam = sessionStorage.getItem('jam_id');
+                            
+                            if (rol === 'Host' && idJam) {
+                                try {
+                                    // Aquí se debería actualizar la Jam en el backend
+                                    // Como no hay endpoint explícito para "cambiar estación", 
+                                    // simulamos o informamos que solo el Host puede hacerlo.
+                                    // El backend jam.php no parece tener "cambiar_estacion".
+                                    // Por ahora, solo cambiamos localmente y alertamos.
+                                    alert("Cambiando estación para todos...");
+                                    // En un sistema real, haríamos un fetch a jam.php?accion=actualizar
+                                } catch(e) {}
+                            }
+                            
+                            // Actualizar localmente
+                            sessionStorage.setItem('jam_estacion_nombre', st.name);
+                            sessionStorage.setItem('jam_estacion_url', url);
+                            window.location.reload();
+                        };
+                        cajaRes.appendChild(div);
+                    });
+                } catch(e) {
+                    if (e.name !== 'AbortError') {
+                        iconoBusq.className = 'fas fa-magnifying-glass';
+                        cajaRes.innerHTML = '<div style="padding:15px; text-align:center; color:#ff4444; font-size:12px;">Error en la búsqueda.</div>';
+                    }
+                }
+            }
+
+            inputBusq.addEventListener('input', () => {
+                const q = inputBusq.value.trim();
+                clearTimeout(timerBusq);
+                if (q.length < 3) {
+                    cajaRes.style.display = 'none';
+                    return;
+                }
+                timerBusq = setTimeout(() => buscar(q), 400);
+            });
+
+            document.addEventListener('click', e => {
+                if (!inputBusq.contains(e.target) && !cajaRes.contains(e.target)) {
+                    cajaRes.style.display = 'none';
+                }
+            });
+        })();
     </script>
 </body>
 

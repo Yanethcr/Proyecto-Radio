@@ -2,14 +2,8 @@
 header("Content-Type: application/json");
 header("Access-Control-Allow-Origin: https://radio.kesug.com");
 header("Access-Control-Allow-Credentials: true");
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'domain'   => 'radio.kesug.com',
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
+header("Access-Control-Allow-Methods: POST, GET");
+header("Access-Control-Allow-Headers: Content-Type");
 session_start();
 require_once "conexion.php";
 
@@ -51,18 +45,18 @@ if ($accion === "registrar") {
         // INSERTA el nuevo registro, dejándolo hasta arriba en la lista
         $stmtHist = $pdo->prepare("INSERT INTO Historial (IdUsuario, IdEstacion, FechaEscucha) VALUES (?, ?, NOW())");
         $stmtHist->execute([$idUsuario, $idEstacion]);
-
+        
         echo json_encode(["ok" => true]);
     } catch (Exception $e) {
         echo json_encode(["ok" => false, "error" => $e->getMessage()]);
     }
     exit;
-}
+} 
 
 if ($accion === "cargar") {
     try {
         $stmt = $pdo->prepare("
-            SELECT e.Nombre, e.Stream_url, c.Nombre as Ciudad, p.Nombre as Pais, h.FechaEscucha
+            SELECT e.Nombre, e.Stream_url, c.Nombre as Ciudad, p.Nombre as Pais
             FROM Historial h
             JOIN Estaciones e ON h.IdEstacion = e.IdEstacion
             LEFT JOIN Ciudades c ON e.IdCiudad = c.IdCiudad
@@ -77,3 +71,4 @@ if ($accion === "cargar") {
     }
     exit;
 }
+?>

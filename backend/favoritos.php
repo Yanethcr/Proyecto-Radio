@@ -5,14 +5,6 @@ header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: POST, GET");
 header("Access-Control-Allow-Headers: Content-Type");
 
-session_set_cookie_params([
-    'lifetime' => 0,
-    'path'     => '/',
-    'domain'   => 'radio.kesug.com',
-    'secure'   => true,
-    'httponly' => true,
-    'samesite' => 'None'
-]);
 session_start();
 require_once "conexion.php";
 
